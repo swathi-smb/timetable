@@ -1,11 +1,11 @@
 import React from "react";
-import backgroundImage from "../assets/bg.jpg";
+// import backgroundImage from "bg.jpg";
 
 function HeroSection() {
   return (
     <section 
       className="relative w-full h-[70vh] md:h-[50vh] lg:h-[60vh] flex items-center justify-center px-4 bg-cover bg-center"
-      style={{ backgroundImage: `url(${backgroundImage})` }}
+style={{ backgroundImage: `url('/bg.jpg')` }}
     >
       {/* Content */}
       <div className="relative max-w-3xl text-center px-4 md:px-6 py-6 md:py-8 bg-white/20 backdrop-blur-md rounded-lg shadow-md">

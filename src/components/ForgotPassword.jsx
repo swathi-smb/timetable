@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import backgroundImage from "../assets/bg.jpg";
+// import backgroundImage from "bg.jpg";
 
 function ForgotPassword() {
   const [email, setEmail] = useState('');
@@ -22,7 +22,7 @@ function ForgotPassword() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-cover bg-center p-4"
-      style={{ backgroundImage: `url(${backgroundImage})` }}>
+      style={{ backgroundImage: 'bg.jpg' }}>
       <form onSubmit={handleSubmit} className="bg-white/90 backdrop-blur-md rounded-lg shadow-lg p-6 md:p-8 w-full max-w-md">
         <h1 className="text-2xl font-bold mb-6 text-center">Forgot Password</h1>
         <p className="text-center text-sm text-gray-600 mb-4">Enter your email to receive a reset link.</p>

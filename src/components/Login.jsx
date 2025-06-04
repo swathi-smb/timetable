@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import backgroundImage from "../assets/bg.jpg";
+// import backgroundImage from "bg.jpg";
 
 export default function Login() {
   const [formData, setFormData] = useState({
@@ -172,7 +172,7 @@ export default function Login() {
   return (
     <div 
       className="min-h-screen flex items-center justify-center bg-cover bg-center p-4 md:p-8"
-      style={{ backgroundImage: `url(${backgroundImage})` }}
+style={{ backgroundImage: `url('/bg.jpg')` }}
     >
       <form 
         onSubmit={handleSubmit} 
