@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { apiPath } from '../path/apiPath';
+
 
 const PendingUsersSection = () => {
   const [pendingUsers, setPendingUsers] = useState([]);
@@ -8,7 +10,7 @@ const PendingUsersSection = () => {
 
   const fetchPendingUsers = async () => {
     try {
-      const response = await axios.get(`${import.meta.env.VITE_BASE_URL}/api/users/pending`, {
+      const response = await axios.get(`${apiPath}/api/users/pending`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       console.log('Pending users:', response.data);
@@ -27,7 +29,7 @@ const PendingUsersSection = () => {
   const handleAction = async (userId, action) => {
     try {
       await axios.post(
-        `${import.meta.env.VITE_BASE_URL}/api/users/handle-approval`,
+        `${apiPath}/api/users/handle-approval`,
         { userId, action },
         { headers: { Authorization: `Bearer ${token}` } }
       );

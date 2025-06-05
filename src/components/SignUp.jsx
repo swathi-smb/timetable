@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import Navbar from './Navbar';
+import { apiPath } from "../path/apiPath";
 // import backgroundImage from "bg.jpg";
 
 function SignUp() {
@@ -38,7 +39,7 @@ function SignUp() {
     // For staff registration, fetch staff details
     if (formData.role === '2') {
       try {
-        const response = await axios.get(`${import.meta.env.VITE_BASE_URL}/api/staff-profile/details/${email}`);
+        const response = await axios.get(`${apiPath}/api/staff-profile/details/${email}`);
         const staffData = response.data;
 
         setFormData(prev => ({
@@ -92,7 +93,7 @@ function SignUp() {
 
     try {
       console.log('Fetching student details for roll number:', rollNumber);
-      const response = await axios.get(`${import.meta.env.VITE_BASE_URL}/api/student/roll/${rollNumber}`);
+      const response = await axios.get(`${apiPath}/api/student/roll/${rollNumber}`);
       const studentData = response.data;
 
       console.log('Student data received:', studentData);
@@ -222,7 +223,7 @@ function SignUp() {
       }
 
       console.log("Request data:", requestData);
-      const response = await axios.post(`${import.meta.env.VITE_BASE_URL}/api/auth/signup`, requestData);
+      const response = await axios.post(`${apiPath}/api/auth/signup`, requestData);
 
       console.log("Signup response:", response.data);
       setMessage({
