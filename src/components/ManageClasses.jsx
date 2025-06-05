@@ -448,32 +448,50 @@ function ManageClasses() {
     </div>
 
     {/* Add Class */}
-    <div className="mb-4">
-      <div className="flex flex-col md:flex-row gap-2">
-        <select
-          value={selectedSemester}
-          onChange={(e) => {
-            setSelectedSemester(e.target.value);
-            setError("");
-          }}
-          className="border p-2 rounded w-full"
-        >
-          <option value="">Select Semester</option>
-          {[1, 2, 3, 4, 5, 6, 7, 8].map((num) => (
-            <option key={num} value={num}>
-              Semester {num}
-            </option>
-          ))}
-        </select>
-        <button
-          onClick={handleAddClass}
-          className="bg-[#0096c7] hover:bg-[#023e8a] text-white px-4 py-2 rounded w-full md:w-auto"
-        >
-          Add Class
-        </button>
-      </div>
-      {error && <div className="text-red-500 text-sm mt-1">{error}</div>}
-    </div>
+      <div className="mb-4">
+        <div className="flex py-2">
+          <select 
+            value={selectedSemester} 
+            onChange={(e) => {
+              setSelectedSemester(e.target.value);
+              setError(""); // Clear error when selection changes
+            }}
+            className="border p-2 flex-1 mr-2"
+          >
+            <option value="">Select Semester</option>
+            {[1, 2, 3, 4, 5, 6, 7, 8].map(num => (
+              <option key={num} value={num}>Semester {num}</option>
+            ))}
+          </select>
+          <button 
+            onClick={handleAddClass} 
+            className="bg-[#0096c7] hover:bg-[#023e8a] text-white px-4 py-2 rounded"
+          >
+            Add Class
+          </button>
+        </div>
+        {error && (
+          <div className="text-red-500 text-sm mt-1">{error}</div>
+        )}
+      </div>   
+      {/* Select Class */}
+      <select 
+        onChange={(e) => {
+          setSelectedClass(e.target.value);
+          setError(""); // Clear error when selection changes
+        }} 
+        className="border p-2 w-full mb-4 rounded"
+      >
+        <option value="">Select Class</option>
+        {classes.map(cls => (
+          <option key={cls.class_id} value={cls.class_id}>
+            {cls.class_name} (Semester {cls.semester})
+          </option>
+        ))}
+      </select>
+      {selectedClass && (
+        <button onClick={handleDeleteClass} className="bg-red-500 hover:bg-[#ad2831] text-white px-4 py-2 rounded">Delete</button>
+      )}
 
     {/* Section Prompt
     <div className="mb-4 flex flex-col md:flex-row gap-2 items-start md:items-center">
