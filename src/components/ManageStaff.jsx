@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import axios from "axios";
+import { apiPath } from '../path/apiPath';
 
 const ManageStaff = () => {
   const [staffList, setStaffList] = useState([]);
@@ -21,60 +22,50 @@ const ManageStaff = () => {
   // Fetch Schools
   const fetchSchools = async () => {
     try {
-      const res = await axios.get("http://localhost:5000/api/staff/schools", {
+      const res = await axios.get(`${apiPath}/api/staff/schools`, {
         headers: {
-          Authorization: `Bearer ${token}`,
-        },
+          Authorization: `Bearer ${localStorage.getItem('token')}`
+        }
       });
       setSchools(res.data);
     } catch (error) {
-      console.error("Error fetching schools", error);
+      console.error('Error fetching schools:', error);
     }
   };
 
   // Fetch Departments
   const fetchDepartments = async (school_id) => {
     try {
-      console.log("School Id:", school_id);
-      console.log("token", token)
-      const res = await axios.get(`http://localhost:5000/api/staff/departments/${school_id}`, {
+      const res = await axios.get(`${apiPath}/api/staff/departments/${school_id}`, {
         headers: {
-          Authorization: `Bearer ${token}`,
-        },
+          Authorization: `Bearer ${localStorage.getItem('token')}`
+        }
       });
-
       setDepartments(res.data);
     } catch (error) {
-      console.error("Error fetching departments", error);
+      console.error('Error fetching departments:', error);
     }
   };
 
   // Fetch Staff (with optional school_id and department_id)
-  const fetchStaff = async (schoolId, departmentId) => {
+  const fetchStaff = async () => {
     try {
-      console.log("Fetching staff details:");
-      let url = "http://localhost:5000/api/staff";
-
-      // Add query parameters if school and department are selected
-      if (schoolId && departmentId) {
-        url += `?school_id=${schoolId}&department_id=${departmentId}`;
+      let url = `${apiPath}/api/staff`;
+      if (selectedSchool) {
+        url += `?school_id=${selectedSchool}`;
+        if (selectedDepartment) {
+          url += `&department_id=${selectedDepartment}`;
+        }
       }
-
-      // Log the final URL for debugging
-      console.log("Request URL:", url);
-
       const response = await axios.get(url, {
         headers: {
-          Authorization: `Bearer ${token}`,
-        },
+          Authorization: `Bearer ${localStorage.getItem('token')}`
+        }
       });
-
       setStaffList(response.data);
-      console.log("Filtered Staff Data:", response.data);
     } catch (error) {
-      console.error("Error fetching staff", error);
+      console.error('Error fetching staff:', error);
     }
-
   };
 
   // Add Staff
@@ -86,8 +77,9 @@ const ManageStaff = () => {
 
     try {
       await axios.post(
-        "http://localhost:5000/api/staff",
-        {          staff_name: newStaff.staff_name,
+        `${apiPath}/api/staff`,
+        {
+          staff_name: newStaff.staff_name,
           specialization: newStaff.specialization,
           email_id: newStaff.email_id, // Use provided email
           school_id: parseInt(selectedSchool, 10),
@@ -95,15 +87,15 @@ const ManageStaff = () => {
         },
         {
           headers: {
-            Authorization: `Bearer ${token}`,
+            Authorization: `Bearer ${localStorage.getItem('token')}`
           },
         }
       );
 
       setNewStaff({ staff_name: "", specialization: "" });
-      fetchStaff(selectedSchool,selectedDepartment);
+      fetchStaff();
     } catch (error) {
-      console.error("Error adding staff", error);
+      console.error('Error adding staff:', error);
     }
   };
 
@@ -116,8 +108,9 @@ const ManageStaff = () => {
 
     try {
       await axios.put(
-        `http://localhost:5000/api/staff/${editingStaff.staff_id}`,
-        {          staff_name: editingStaff.staff_name,
+        `${apiPath}/api/staff/${editingStaff.staff_id}`,
+        {
+          staff_name: editingStaff.staff_name,
           specialization: editingStaff.specialization,
           email_id: editingStaff.email_id, // Use provided email
           school_id: selectedSchool,
@@ -125,7 +118,7 @@ const ManageStaff = () => {
         },
         {
           headers: {
-            Authorization: `Bearer ${token}`,
+            Authorization: `Bearer ${localStorage.getItem('token')}`
           },
         }
       );
@@ -133,7 +126,7 @@ const ManageStaff = () => {
       setEditingStaff(null);
       fetchStaff();
     } catch (error) {
-      console.error("Error updating staff", error);
+      console.error('Error updating staff:', error);
     }
   };
 
@@ -142,19 +135,17 @@ const ManageStaff = () => {
     if (!window.confirm("Are you sure you want to delete this staff?")) return;
 
     try {
-      await axios.delete(`http://localhost:5000/api/staff/${id}`, {
+      await axios.delete(`${apiPath}/api/staff/${id}`, {
         headers: {
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${localStorage.getItem('token')}`
         },
       });
       alert("Staff deleted successfully!");
       fetchStaff();
     } catch (error) {
-      console.error("Error deleting staff", error);
+      console.error('Error deleting staff:', error);
       alert("Failed to delete staff. Please try again.");
     }
-    fetchStaff(selectedSchool, selectedDepartment);
-
   };
 
   return (
@@ -229,7 +220,7 @@ const ManageStaff = () => {
         <button
           disabled={!selectedSchool || !selectedDepartment}
           className={`px-6 py-2 ${!selectedSchool || !selectedDepartment ? 'bg-gray-400' : 'bg-green-600'} text-white rounded hover:bg-green-700`}
-          onClick={() => fetchStaff(selectedSchool, selectedDepartment)}
+          onClick={() => fetchStaff()}
         >
           Load Staff Details
         </button>

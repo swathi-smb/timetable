@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import { apiPath } from '../path/apiPath';
 // import backgroundImage from "bg.jpg";
 
 function ForgotPassword() {
@@ -13,9 +14,10 @@ function ForgotPassword() {
     setError('');
 
     try {
-      const response = await axios.post('http://localhost:5000/api/auth/forgot-password', { email });
+      const response = await axios.post(`${apiPath}/api/auth/forgot-password`, { email });
       setMessage(response.data.message || 'Reset link sent! Check your email.');
     } catch (error) {
+      console.error('Error sending reset email:', error);
       setError(error.response?.data?.message || 'Failed to send reset link. Try again.');
     }
   };

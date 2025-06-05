@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import TimetableGeneratorNew from "./TimetableGeneratorNew";
 import TimetableTable from "./TimetableTable";
+import { apiPath } from '../path/apiPath';
 
 function ManageTimetable() {
   const [showGenerator, setShowGenerator] = useState(false);
@@ -95,7 +96,7 @@ function ManageTimetable() {
 
   // Fetch Schools
   useEffect(() => {
-    axios.get("http://localhost:5000/api/schools")
+    axios.get(`${apiPath}/api/schools`)
       .then((res) => setSchools(res.data))
       .catch(error => console.error("Error fetching schools:", error));
   }, []);
@@ -104,7 +105,7 @@ function ManageTimetable() {
   useEffect(() => {
     if (selectedSchool && selectedDepartment) {
       setIsLoading(true);
-      axios.get(`http://localhost:5000/api/schools/${selectedSchool}/departments/${selectedDepartment}/courses`)
+      axios.get(`${apiPath}/api/schools/${selectedSchool}/departments/${selectedDepartment}/courses`, { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } })
         .then(res => {
           console.log("Raw courses response:", JSON.stringify(res.data, null, 2));
           const coursesData = Array.isArray(res.data) ? res.data : [res.data];
@@ -134,7 +135,7 @@ function ManageTimetable() {
   // Fetch Departments when school is selected
   const fetchDepartments = async (schoolId) => {
     try {
-      const url = `http://localhost:5000/api/schools/departments/${schoolId}`;
+      const url = `${apiPath}/api/schools/${schoolId}/departments`;
       console.log("Fetching departments for school:", schoolId);
 
       if (!departments[schoolId]) {
@@ -147,7 +148,13 @@ function ManageTimetable() {
       }
     } catch (error) {
       console.error("Error fetching departments:", error);
-      alert("Departments not found in this School.");
+      if (error.response?.status === 404) {
+        alert("No departments found for this school.");
+      } else {
+        alert("Error fetching departments. Please try again.");
+      }
+      // Initialize with empty array to prevent mapping errors
+      setDepartments((prev) => ({ ...prev, [schoolId]: [] }));
     }
   };
 
@@ -165,15 +172,8 @@ function ManageTimetable() {
       }
 
       const response = await axios.get(
-        `http://localhost:5000/api/staff`,
-        {
-          params:
-           { school_id: selectedSchool,
-             department_id: selectedDepartment },
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+        `${apiPath}/api/staff`,
+        { headers: { Authorization: `Bearer ${token}` } }
       );
 
       if (response.data.length > 0) {
@@ -203,11 +203,14 @@ function ManageTimetable() {
       console.log("Using courses for subject mapping:", currentCourses);
 
       const response = await axios.get(
-        `http://localhost:5000/api/schools/subjects`,
+        `${apiPath}/api/timetable/subjects`,
         {
           params: {
             school_id: selectedSchool,
             department_id: selectedDepartment
+          },
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
         }
       );
@@ -299,7 +302,7 @@ function ManageTimetable() {
       }
 
       const response = await axios.post(
-        "http://localhost:5000/api/timetable/allocate",
+        `${apiPath}/api/timetable/allocate`,
         {
           allocations: validAllocations,
           timeConfig: {

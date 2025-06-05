@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import TimetableTable from './TimetableTable';
 import { jwtDecode } from 'jwt-decode';
+import { apiPath } from '../path/apiPath';
 
 const StudentDashboard = () => {
   const [selectedSemesterType, setSelectedSemesterType] = useState('even');
@@ -140,13 +141,16 @@ const StudentDashboard = () => {
         semester: studentDetails.semester
       });
 
+      // Determine semester type (odd/even) based on student's semester
+      const semesterType = parseInt(studentDetails.semester) % 2 === 0 ? 'even' : 'odd';
+
       // Fetch saved timetable for student's specific semester
-      const timetableResponse = await axios.get(`http://localhost:5000/api/timetable/generated`, {
+      const timetableResponse = await axios.get(`${apiPath}/api/timetable/generated`, {
         headers: { Authorization: `Bearer ${token}` },
         params: {
           school_id: studentDetails.school,
           department_id: studentDetails.department,
-          semester: studentDetails.semester
+          semesterType: semesterType
         }
       });
 
@@ -155,8 +159,8 @@ const StudentDashboard = () => {
       if (timetableResponse.data && timetableResponse.data.length > 0) {
         // Filter data for student's semester only
         const studentSemesterData = timetableResponse.data.filter(entry => {
-          const matchesCourse = entry.course_id.toString() === studentDetails.course.toString();
-          const matchesSemester = entry.semester.toString() === studentDetails.semester.toString();
+          const matchesCourse = String(entry.course_id) === String(studentDetails.course);
+          const matchesSemester = String(entry.semester) === String(studentDetails.semester);
           
           console.log('Checking entry:', {
             entryCourse: entry.course_id,

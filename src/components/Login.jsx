@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import Navbar from './Navbar';
+import { apiPath } from '../path/apiPath';
 // import backgroundImage from "bg.jpg";
 
 export default function Login() {
@@ -136,14 +138,11 @@ export default function Login() {
   const handleSignup = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post('http://localhost:5000/api/auth/signup', {
+      const response = await axios.post(`${apiPath}/api/auth/signup`, {
         name,
         email,
         password,
-        role,
-        school_id: selectedSchool,
-        department_id: selectedDepartment,
-        specialization
+        role
       });
 
       setSignupMessage(response.data.message);
@@ -157,6 +156,7 @@ export default function Login() {
       setSelectedDepartment('');
       setSpecialization('');
     } catch (error) {
+      console.error('Error signing up:', error);
       setSignupMessage(error.response?.data?.message || 'Error during signup');
       setMessageType('error');
     }
@@ -170,85 +170,89 @@ export default function Login() {
   };
 
   return (
-    <div 
-      className="min-h-screen flex items-center justify-center bg-cover bg-center p-4 md:p-8"
-style={{ backgroundImage: `url('/bg.jpg')` }}
-    >
-      <form 
-        onSubmit={handleSubmit} 
-        className="bg-white/90 rounded-lg shadow-lg p-6 md:p-8 w-full max-w-sm md:max-w-md mx-4"
+    <div className="min-h-screen flex flex-col">
+      <Navbar />
+      <div 
+        className="flex-1 flex items-center justify-center bg-cover bg-center p-4 md:p-8"
+        style={{ backgroundImage: `url('/bg.jpg')` }}
       >
-        <h1 className="text-2xl font-bold mb-6 text-center text-gray-800">Login</h1>
-
-        {/* Email or Roll Number Input */}
-        <div className="mb-4">
-          <input
-            type="text"
-            name="email"
-            placeholder="Enter your email or roll number"
-            value={formData.email}
-            onChange={handleChange}
-            className={`w-full p-3 border rounded-lg focus:outline-none focus:ring-2 ${
-              errors.email ? 'border-red-500 focus:ring-red-200' : 'border-gray-300 focus:ring-blue-200'
-            }`}
-          />
-          {errors.email && <span className="text-red-500 text-sm mt-1">{errors.email}</span>}
-        </div>
-
-        {/* Password Input */}
-        <div className="mb-4">
-          <input
-            type="password"
-            name="password"
-            placeholder="Enter your password"
-            value={formData.password}
-            onChange={handleChange}
-            className={`w-full p-3 border rounded-lg focus:outline-none focus:ring-2 ${
-              errors.password ? 'border-red-500 focus:ring-red-200' : 'border-gray-300 focus:ring-blue-200'
-            }`}
-          />
-          {errors.password && <span className="text-red-500 text-sm mt-1">{errors.password}</span>}
-        </div>
-
-        {/* Save Password Option */}
-        <div className="flex items-center mb-4">
-          <input
-            type="checkbox"
-            id="savePassword"
-            checked={savePassword}
-            onChange={() => setSavePassword(!savePassword)}
-            className="mr-2 h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
-          />
-          <label htmlFor="savePassword" className="text-sm text-gray-700">Save Password</label>
-        </div>
-
-        {/* General Error Message */}
-        {errors.general && (
-          <div className="text-red-500 text-sm mb-4 text-center">{errors.general}</div>
-        )}
-
-        {/* Submit Button */}
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full bg-blue-600 text-white p-3 rounded-lg hover:bg-blue-700 transition disabled:opacity-50"
+        <form 
+          onSubmit={handleSubmit} 
+          className="bg-white/90 rounded-lg shadow-lg p-6 md:p-8 w-full max-w-sm md:max-w-md mx-4"
         >
-          {loading ? 'Logging in...' : 'Login'}
-        </button>
-        {/* Signup Link */}
-        <div className="text-center text-sm text-gray-600 mt-4">
-          Don't have an account? <Link to="/signup" className="text-blue-600 hover:underline">Signup</Link>
-        </div>
+          <h1 className="text-2xl font-bold mb-6 text-center text-gray-800">Login</h1>
 
-        {/* Signup Message */}
-        {signupMessage && (
-          <div className={`mt-4 p-4 rounded ${
-            messageType === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
-          }`}>
-            {signupMessage}
+          {/* Email or Roll Number Input */}
+          <div className="mb-4">
+            <input
+              type="text"
+              name="email"
+              placeholder="Enter your email or roll number"
+              value={formData.email}
+              onChange={handleChange}
+              className={`w-full p-3 border rounded-lg focus:outline-none focus:ring-2 ${
+                errors.email ? 'border-red-500 focus:ring-red-200' : 'border-gray-300 focus:ring-blue-200'
+              }`}
+            />
+            {errors.email && <span className="text-red-500 text-sm mt-1">{errors.email}</span>}
           </div>
-        )}
-      </form>
+
+          {/* Password Input */}
+          <div className="mb-4">
+            <input
+              type="password"
+              name="password"
+              placeholder="Enter your password"
+              value={formData.password}
+              onChange={handleChange}
+              className={`w-full p-3 border rounded-lg focus:outline-none focus:ring-2 ${
+                errors.password ? 'border-red-500 focus:ring-red-200' : 'border-gray-300 focus:ring-blue-200'
+              }`}
+            />
+            {errors.password && <span className="text-red-500 text-sm mt-1">{errors.password}</span>}
+          </div>
+
+          {/* Save Password Option */}
+          <div className="flex items-center mb-4">
+            <input
+              type="checkbox"
+              id="savePassword"
+              checked={savePassword}
+              onChange={() => setSavePassword(!savePassword)}
+              className="mr-2 h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+            />
+            <label htmlFor="savePassword" className="text-sm text-gray-700">Save Password</label>
+          </div>
+
+          {/* General Error Message */}
+          {errors.general && (
+            <div className="text-red-500 text-sm mb-4 text-center">{errors.general}</div>
+          )}
+
+          {/* Submit Button */}
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-blue-600 text-white p-3 rounded-lg hover:bg-blue-700 transition disabled:opacity-50"
+          >
+            {loading ? 'Logging in...' : 'Login'}
+          </button>
+
+          {/* Signup Link */}
+          <div className="text-center text-sm text-gray-600 mt-4">
+            Don't have an account? <Link to="/signup" className="text-blue-600 hover:underline">Signup</Link>
+          </div>
+
+          {/* Signup Message */}
+          {signupMessage && (
+            <div className={`mt-4 p-4 rounded ${
+              messageType === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+            }`}>
+              {signupMessage}
+            </div>
+          )}
+        </form>
+      </div>
     </div>
   );
 }

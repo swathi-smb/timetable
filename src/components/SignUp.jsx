@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
+import Navbar from './Navbar';
 // import backgroundImage from "bg.jpg";
 
 function SignUp() {
@@ -255,192 +256,113 @@ function SignUp() {
   };
 
   return (
-    <div
-      className="min-h-screen flex items-center justify-center bg-cover bg-center p-4"
-      style={{ backgroundImage: `url('/bg.jpg')` }}
-    >
-      <form
-        onSubmit={handleSubmit}
-        className="bg-white/90 backdrop-blur-md rounded-lg shadow-lg p-6 md:p-8 w-full max-w-md mx-4"
+    <div className="min-h-screen flex flex-col">
+      <Navbar />
+      <div 
+        className="flex-1 flex items-center justify-center bg-cover bg-center p-4 md:p-8"
+        style={{ backgroundImage: `url('/bg.jpg')` }}
       >
-        <h1 className="text-2xl font-bold mb-6 text-center">Sign Up</h1>
+        <form 
+          onSubmit={handleSubmit} 
+          className="bg-white/90 rounded-lg shadow-lg p-6 md:p-8 w-full max-w-sm md:max-w-md mx-4"
+        >
+          <h1 className="text-2xl font-bold mb-6 text-center text-gray-800">Sign Up</h1>
 
-        {/* Role Selection */}
-        <div className="mb-4">
-          <select
-            className={`w-full p-2 border rounded-lg focus:outline-none ${errors.role ? "border-red-500" : "border-gray-300"
-              }`}
-            value={formData.role}
-            onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-          >
-            <option value="">Select Role</option>
-            <option value="2">Staff</option>
-            <option value="3">Student</option>
-          </select>
-          {errors.role && <span className="text-red-500 text-sm">{errors.role}</span>}
-        </div>
-
-        {/* Email Field - Only shown for staff */}
-        {formData.role === "2" && (
-          <div className="mb-4">
-            <input
-              type="email"
-              placeholder="Enter your email"
-              value={formData.email}
-              onChange={handleEmailChange}
-              className={`w-full p-2 md:p-3 border rounded-lg focus:outline-none focus:ring-2 ${errors.email ? "border-red-500 focus:ring-red-200" : "border-gray-300 focus:ring-blue-200"
-                }`}
-            />
-            {errors.email && <span className="text-red-500 text-sm mt-1">{errors.email}</span>}
-          </div>
-        )}
-
-        {/* Roll Number Field - Only shown for students */}
-        {formData.role === "3" && (
+          {/* Name Input */}
           <div className="mb-4">
             <input
               type="text"
-              placeholder="Enter Roll Number"
-              value={formData.roleNumber || ""}
-              onChange={handleRollNumberChange}
-              className={`w-full p-2 md:p-3 border rounded-lg focus:outline-none focus:ring-2 ${errors.roleNumber ? "border-red-500 focus:ring-red-200" : "border-gray-300 focus:ring-blue-200"
-                }`}
+              name="name"
+              placeholder="Enter your full name"
+              value={formData.name}
+              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              className={`w-full p-3 border rounded-lg focus:outline-none focus:ring-2 ${
+                errors.name ? 'border-red-500 focus:ring-red-200' : 'border-gray-300 focus:ring-blue-200'
+              }`}
             />
-            {errors.roleNumber && (
-              <span className="text-red-500 text-sm">{errors.roleNumber}</span>
-            )}
+            {errors.name && <span className="text-red-500 text-sm mt-1">{errors.name}</span>}
           </div>
-        )}
 
-        {/* Password Field */}
-        <div className="mb-4">
-          <input
-            type="password"
-            name="password"
-            placeholder="Enter your password"
-            autoComplete="new-password"
-            value={formData.password}
-            onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-            className={`w-full p-2 md:p-3 border rounded-lg focus:outline-none focus:ring-2 ${errors.password ? "border-red-500 focus:ring-red-200" : "border-gray-300 focus:ring-blue-200"
-              }`}
-          />
-          {errors.password && <span className="text-red-500 text-sm mt-1">{errors.password}</span>}
-        </div>
-
-        {/* Confirm Password Field */}
-        <div className="mb-4">
-          <input
-            type="password"
-            placeholder="Confirm your password"
-            value={formData.confirmPassword}
-            onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-            className={`w-full p-2 md:p-3 border rounded-lg focus:outline-none focus:ring-2 ${errors.confirmPassword ? "border-red-500 focus:ring-red-200" : "border-gray-300 focus:ring-blue-200"
-              }`}
-          />
-          {errors.confirmPassword && <span className="text-red-500 text-sm mt-1">{errors.confirmPassword}</span>}
-        </div>
-
-
-
-        {/* School Selection - Read Only */}
-        <div className="mb-4">
-          <select
-            className={`w-full p-2 border rounded-lg focus:outline-none ${errors.school ? "border-red-500" : "border-gray-300"
-              } ${loading ? 'bg-gray-100' : ''}`}
-            value={formData.school}
-            disabled={true}
-          >
-            {schools.length === 0 ? (
-              <option value="">School will be auto-populated</option>
-            ) : (
-              schools.map(school => (
-                <option key={school.school_id} value={school.school_id}>
-                  {school.school_name}
-                </option>
-              ))
-            )}
-          </select>
-          {errors.school && <span className="text-red-500 text-sm">{errors.school}</span>}
-        </div>
-
-        {/* Department Selection - Read Only */}
-        <div className="mb-4">
-          <select
-            className={`w-full p-2 border rounded-lg focus:outline-none ${errors.department ? "border-red-500" : "border-gray-300"
-              } ${loading ? 'bg-gray-100' : ''}`}
-            value={formData.department}
-            disabled={true}
-          >
-            {departments.length === 0 ? (
-              <option value="">Department will be auto-populated</option>
-            ) : (
-              departments.map(dept => (
-                <option key={dept.department_id} value={dept.department_id}>
-                  {dept.department_name}
-                </option>
-              ))
-            )}
-          </select>
-          {errors.department && <span className="text-red-500 text-sm">{errors.department}</span>}
-        </div>
-
-        {/* Course Selection - Read Only */}
-        {formData.role === "3" && (
+          {/* Email Input */}
           <div className="mb-4">
-            <select
-              className={`w-full p-2 border rounded-lg focus:outline-none ${errors.course ? "border-red-500" : "border-gray-300"
-                } ${loading ? 'bg-gray-100' : ''}`}
-              value={formData.course}
-              disabled={true}
-            >
-              {courses.length === 0 ? (
-                <option value="">Course will be auto-populated</option>
-              ) : (
-                courses.map(course => (
-                  <option key={course.course_id} value={course.course_id}>
-                    {course.course_name}
-                  </option>
-                ))
-              )}
-            </select>
-            {errors.course && <span className="text-red-500 text-sm">{errors.course}</span>}
-          </div>
-        )}
-
-        {/* General Errors */}
-        {errors.general && (
-          <div className="text-red-500 text-sm mb-4 text-center">{errors.general}</div>
-        )}
-
-        {/* Success/Error Message */}
-        {message.text && (
-          <div
-            className={`text-sm mb-4 p-3 rounded ${message.type === 'success'
-                ? 'bg-green-100 text-green-700 border border-green-300'
-                : 'bg-red-100 text-red-700 border border-red-300'
+            <input
+              type="email"
+              name="email"
+              placeholder="Enter your email"
+              value={formData.email}
+              onChange={handleEmailChange}
+              className={`w-full p-3 border rounded-lg focus:outline-none focus:ring-2 ${
+                errors.email ? 'border-red-500 focus:ring-red-200' : 'border-gray-300 focus:ring-blue-200'
               }`}
-          >
-            {message.text}
+            />
+            {errors.email && <span className="text-red-500 text-sm mt-1">{errors.email}</span>}
           </div>
-        )}
 
-        {/* Submit Button */}
-        <button
-          type="submit"
-          className="w-full bg-blue-600 text-white p-2 md:p-3 rounded-lg hover:bg-blue-700 transition disabled:opacity-50"
-          disabled={loading}
-        >
-          {loading ? "Signing Up..." : "Sign Up"}
-        </button>
+          {/* Roll Number Input */}
+          <div className="mb-4">
+            <input
+              type="text"
+              name="rollNumber"
+              placeholder="Enter your roll number"
+              value={formData.roleNumber}
+              onChange={handleRollNumberChange}
+              className={`w-full p-3 border rounded-lg focus:outline-none focus:ring-2 ${
+                errors.roleNumber ? 'border-red-500 focus:ring-red-200' : 'border-gray-300 focus:ring-blue-200'
+              }`}
+            />
+            {errors.roleNumber && <span className="text-red-500 text-sm mt-1">{errors.roleNumber}</span>}
+          </div>
 
-        {/* Login Redirect */}
-        <p className="text-center text-xs md:text-sm text-gray-600 mt-4">
-          Already have an account?{" "}
-          <Link to="/login" className="text-blue-600 hover:underline">
-            Login
-          </Link>
-        </p>
-      </form>
+          {/* Password Input */}
+          <div className="mb-4">
+            <input
+              type="password"
+              name="password"
+              placeholder="Enter your password"
+              value={formData.password}
+              onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+              className={`w-full p-3 border rounded-lg focus:outline-none focus:ring-2 ${
+                errors.password ? 'border-red-500 focus:ring-red-200' : 'border-gray-300 focus:ring-blue-200'
+              }`}
+            />
+            {errors.password && <span className="text-red-500 text-sm mt-1">{errors.password}</span>}
+          </div>
+
+          {/* Confirm Password Input */}
+          <div className="mb-4">
+            <input
+              type="password"
+              name="confirmPassword"
+              placeholder="Confirm your password"
+              value={formData.confirmPassword}
+              onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+              className={`w-full p-3 border rounded-lg focus:outline-none focus:ring-2 ${
+                errors.confirmPassword ? 'border-red-500 focus:ring-red-200' : 'border-gray-300 focus:ring-blue-200'
+              }`}
+            />
+            {errors.confirmPassword && <span className="text-red-500 text-sm mt-1">{errors.confirmPassword}</span>}
+          </div>
+
+          {/* General Error Message */}
+          {errors.general && (
+            <div className="text-red-500 text-sm mb-4 text-center">{errors.general}</div>
+          )}
+
+          {/* Submit Button */}
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-blue-600 text-white p-3 rounded-lg hover:bg-blue-700 transition disabled:opacity-50"
+          >
+            {loading ? 'Signing up...' : 'Sign Up'}
+          </button>
+
+          {/* Login Link */}
+          <div className="text-center text-sm text-gray-600 mt-4">
+            Already have an account? <Link to="/login" className="text-blue-600 hover:underline">Login</Link>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }

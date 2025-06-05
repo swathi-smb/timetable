@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import { apiPath } from '../path/apiPath';
 
 function ManageClasses() {
   const [schools, setSchools] = useState([]);
@@ -24,18 +25,15 @@ function ManageClasses() {
 
   // Fetch all schools
   useEffect(() => {
-    axios.get("http://localhost:5000/api/schools")
-      .then(response => setSchools(response.data))
-      .catch(error => {
-        console.error("Error fetching schools:", error);
-        alert("Failed to fetch schools. Please try again."); // Provide user feedback
-      });
+    axios.get(`${apiPath}/api/schools`)
+      .then((res) => setSchools(res.data))
+      .catch(error => console.error("Error fetching schools:", error));
   }, []);
 
   // Fetch departments when a school is selected
   useEffect(() => {
     if (selectedSchool) {
-      axios.get(`http://localhost:5000/api/schools/${selectedSchool}/departments`)
+      axios.get(`${apiPath}/api/schools/${selectedSchool}/departments`)
         .then(response => setDepartments(response.data))
         .catch(error => {
           console.error("Error fetching departments:", error);
@@ -47,7 +45,7 @@ function ManageClasses() {
   // Fetch courses when a department is selected
   useEffect(() => {
     if (selectedDepartment) {
-      axios.get(`http://localhost:5000/api/schools/${selectedSchool}/departments/${selectedDepartment}/courses`)
+      axios.get(`${apiPath}/api/schools/${selectedSchool}/departments/${selectedDepartment}/courses`)
         .then(response => setCourses(response.data))
         .catch(error => {
           console.error("Error fetching courses:", error);
@@ -58,7 +56,7 @@ function ManageClasses() {
   //Fetch classes when course is selected
   useEffect(() => {
     if (selectedCourse) {
-      axios.get(`http://localhost:5000/api/schools/${selectedSchool}/departments/${selectedDepartment}/courses/${selectedCourse}/classes`)
+      axios.get(`${apiPath}/api/schools/${selectedSchool}/departments/${selectedDepartment}/courses/${selectedCourse}/classes`)
         .then(response => {
           // Sort classes by semester number
           const sortedClasses = Array.isArray(response.data.classes) 
@@ -80,7 +78,7 @@ function ManageClasses() {
   useEffect(() => {
     if (selectedSchool && selectedDepartment && selectedCourse && selectedClass) {
       axios.get(
-        `http://localhost:5000/api/schools/${selectedSchool}/departments/${selectedDepartment}/courses/${selectedCourse}/classes/${selectedClass}/sections`
+        `${apiPath}/api/schools/${selectedSchool}/departments/${selectedDepartment}/courses/${selectedCourse}/classes/${selectedClass}/sections`
       )
         .then(response => {
           setSections(Array.isArray(response.data.sections) ? response.data.sections : []);
@@ -103,14 +101,11 @@ function ManageClasses() {
     }
 
     try {
-      const response = await axios.post("http://localhost:5000/api/schools", {
-        schoolName: schoolName.trim(),
+      const response = await axios.post(`${apiPath}/api/schools`, {
+        school_name: schoolName.trim(),
       });
       console.log(response.data); // debugging
-      setSchools([...schools, {
-        school_id: response.data.school.school_id,
-        school_name: response.data.school.school_name
-      }]);
+      setSchools([...schools, response.data]);
       setSchoolName("");
     } catch (error) {
       console.error("Error adding school:", error.response?.data?.error || error.message);
@@ -127,8 +122,8 @@ function ManageClasses() {
 
     try {
       const response = await axios.post(
-        `http://localhost:5000/api/schools/${selectedSchool}/departments`,
-        { departmentName: departmentName.trim(), addedBy: 1 }
+        `${apiPath}/api/schools/${selectedSchool}/departments`,
+        { department_name: departmentName.trim(), addedBy: 1 }
       );
 
       setDepartments([...departments, {
@@ -143,14 +138,15 @@ function ManageClasses() {
   };
 
   // Delete school
-  const handleDeleteSchool = async (schoolId) => {
+  const handleDeleteSchool = async () => {
     if (!window.confirm("Are you sure you want to delete this school?")) return;
 
     try {
-      await axios.delete(`http://localhost:5000/api/schools/${selectedSchool}`);
+      await axios.delete(`${apiPath}/api/schools/${selectedSchool}`);
       // Refresh the school list
-      const updatedSchools = await axios.get("http://localhost:5000/api/schools");
+      const updatedSchools = await axios.get(`${apiPath}/api/schools`);
       setSchools(updatedSchools.data);
+      setSelectedSchool('');
     } catch (error) {
       console.error("Error deleting school:", error);
       alert(error.response?.data?.error || "Failed to delete school.");
@@ -158,14 +154,15 @@ function ManageClasses() {
   };
 
   // Delete department
-  const handleDeleteDepartment = async (departmentId) => {
+  const handleDeleteDepartment = async () => {
     if (!window.confirm("Are you sure you want to delete this department?")) return;
 
     try {
-      await axios.delete(`http://localhost:5000/api/schools/${selectedSchool}/departments/${selectedDepartment}`);
+      await axios.delete(`${apiPath}/api/schools/${selectedSchool}/departments/${selectedDepartment}`);
       // Refresh the department list
-      const updatedDepartments = await axios.get(`http://localhost:5000/api/schools/${selectedSchool}/departments`);
+      const updatedDepartments = await axios.get(`${apiPath}/api/schools/${selectedSchool}/departments`);
       setDepartments(updatedDepartments.data);
+      setSelectedDepartment('');
     } catch (error) {
       console.error("Error deleting department:", error);
       alert(error.response?.data?.error || "Failed to delete department.");
@@ -173,14 +170,15 @@ function ManageClasses() {
   };
 
   // Delete course
-  const handleDeleteCourse = async (courseId) => {
+  const handleDeleteCourse = async () => {
     if (!window.confirm("Are you sure you want to delete this course?")) return;
 
     try {
-      await axios.delete(`http://localhost:5000/api/schools/${selectedSchool}/departments/${selectedDepartment}/courses/${selectedCourse}`);
+      await axios.delete(`${apiPath}/api/schools/${selectedSchool}/departments/${selectedDepartment}/courses/${selectedCourse}`);
       // Refresh the course list
-      const updatedCourses = await axios.get(`http://localhost:5000/api/schools/${selectedSchool}/departments/${selectedDepartment}/courses`);
+      const updatedCourses = await axios.get(`${apiPath}/api/schools/${selectedSchool}/departments/${selectedDepartment}/courses`);
       setCourses(updatedCourses.data);
+      setSelectedCourse('');
     } catch (error) {
       console.error("Error deleting course:", error);
       alert(error.response?.data?.error || "Failed to delete course.");
@@ -188,19 +186,20 @@ function ManageClasses() {
   };
 
   // Delete class
-  const handleDeleteClass = async (classId) => {
+  const handleDeleteClass = async () => {
     if (!window.confirm("Are you sure you want to delete this class?")) return;
     try {
       await axios.delete(
-        `http://localhost:5000/api/schools/${selectedSchool}/departments/${selectedDepartment}/courses/${selectedCourse}/classes/${selectedClass}`
+        `${apiPath}/api/schools/${selectedSchool}/departments/${selectedDepartment}/courses/${selectedCourse}/classes/${selectedClass}`
       );
       // Refresh class list after deletion
       const response = await axios.get(
-        `http://localhost:5000/api/schools/${selectedSchool}/departments/${selectedDepartment}/courses/${selectedCourse}/classes`
+        `${apiPath}/api/schools/${selectedSchool}/departments/${selectedDepartment}/courses/${selectedCourse}/classes`
       );
 
       // Ensure response data is an array before setting state
       setClasses(Array.isArray(response.data) ? response.data : []);
+      setSelectedClass('');
     } catch (error) {
       console.error("Error deleting class:", error);
       alert(error.response?.data?.error || "Failed to delete class.");
@@ -211,20 +210,21 @@ function ManageClasses() {
   };
 
   //delete section
-  const handleDeleteSection = async (sectionId) => {
+  const handleDeleteSection = async () => {
     if (!window.confirm("Are you sure you want to delete this section?")) return;
 
     try {
       await axios.delete(
-        `http://localhost:5000/api/schools/${selectedSchool}/departments/${selectedDepartment}/courses/${selectedCourse}/classes/${selectedClass}/sections/${selectedSection}`
+        `${apiPath}/api/schools/${selectedSchool}/departments/${selectedDepartment}/courses/${selectedCourse}/classes/${selectedClass}/sections/${selectedSection}`
       );
 
       // Refresh section list after deletion
       const response = await axios.get(
-        `http://localhost:5000/api/schools/${selectedSchool}/departments/${selectedDepartment}/courses/${selectedCourse}/classes/${selectedClass}/sections`
+        `${apiPath}/api/schools/${selectedSchool}/departments/${selectedDepartment}/courses/${selectedCourse}/classes/${selectedClass}/sections`
       );
 
       setSections(Array.isArray(response.data.sections) ? response.data.sections : []);
+      setSelectedSection('');
     } catch (error) {
       console.error("Error deleting section:", error);
       alert(error.response?.data?.error || "Failed to delete section.");
@@ -242,7 +242,7 @@ function ManageClasses() {
 
     try {
       const response = await axios.post(
-        `http://localhost:5000/api/schools/${selectedSchool}/departments/${selectedDepartment}/courses`,
+        `${apiPath}/api/schools/${selectedSchool}/departments/${selectedDepartment}/courses`,
         { course_name: courseName.trim(), addedBy: 1 }
       );
 
@@ -271,7 +271,7 @@ function ManageClasses() {
 
     try {
       const response = await axios.post(
-        `http://localhost:5000/api/schools/${selectedSchool}/departments/${selectedDepartment}/courses/${selectedCourse}/classes`,
+        `${apiPath}/api/schools/${selectedSchool}/departments/${selectedDepartment}/courses/${selectedCourse}/classes`,
         {
           semester: semester,
           addedBy: 1, // Assuming this is a valid user ID
@@ -303,16 +303,16 @@ function ManageClasses() {
 
     try {
       await axios.post(
-        `http://localhost:5000/api/schools/${selectedSchool}/departments/${selectedDepartment}/courses/${selectedCourse}/classes/${selectedClass}/sections`,
+        `${apiPath}/api/schools/${selectedSchool}/departments/${selectedDepartment}/courses/${selectedCourse}/classes/${selectedClass}/sections`,
         {
-          sectionName: sectionName.trim(),
+          section_name: sectionName.trim(),
           addedBy: 1, // Assuming this is a valid user ID
         }
       );
 
       // Refresh section list after adding
       const response = await axios.get(
-        `http://localhost:5000/api/schools/${selectedSchool}/departments/${selectedDepartment}/courses/${selectedCourse}/classes/${selectedClass}/sections`
+        `${apiPath}/api/schools/${selectedSchool}/departments/${selectedDepartment}/courses/${selectedCourse}/classes/${selectedClass}/sections`
       );
 
       setSections(Array.isArray(response.data.sections) ? response.data.sections : []);

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
+import { apiPath } from '../path/apiPath';
 // import backgroundImage from "bg.jpg";
 
 function ResetPassword() {
@@ -27,10 +28,11 @@ function ResetPassword() {
     }
 
     try {
-      await axios.post(`http://localhost:5000/api/auth/reset-password/${token}`, { password });
+      await axios.post(`${apiPath}/api/auth/reset-password/${token}`, { password });
       setMessage('Password reset successful! Redirecting...');
       setTimeout(() => navigate('/login'), 3000);
     } catch (error) {
+      console.error('Error resetting password:', error);
       setError(error.response?.data?.message || 'Failed to reset password. Try again.');
     }
   };

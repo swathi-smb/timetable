@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { apiPath } from '../path/apiPath';
 
 // Add print styles
 const printStyles = `
@@ -399,7 +400,7 @@ const TimetableTable = ({ timetableData, timeConfig, courseList = [] }) => {
         schoolId: course.school_id
       });
 
-      const response = await axios.post('http://localhost:5000/api/saved-timetables/save', {
+      const response = await axios.post(`${apiPath}/api/saved-timetables/save`, {
         name: timetableName,
         timetable_data: modifiedData,
         course_id: parseInt(courseId),

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { apiPath } from '../path/apiPath';
 
 function ManageStudent() {
   const [schools, setSchools] = useState([]);
@@ -54,7 +55,7 @@ function ManageStudent() {
     const fetchAvailableSemesters = async () => {
       if (selectedCourse) {
         try {
-          const response = await axios.get(`http://localhost:5000/api/schools/${selectedSchool}/departments/${selectedDepartment}/courses/${selectedCourse}/classes`, {
+          const response = await axios.get(`${apiPath}/api/schools/${selectedSchool}/departments/${selectedDepartment}/courses/${selectedCourse}/classes`, {
             headers: {
               Authorization: `Bearer ${getAuthToken()}`
             }
@@ -86,7 +87,7 @@ function ManageStudent() {
 
   const fetchSchools = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/schools', {
+      const response = await axios.get(`${apiPath}/api/schools`, {
         headers: {
           Authorization: `Bearer ${getAuthToken()}`
         }
@@ -99,7 +100,7 @@ function ManageStudent() {
 
   const fetchDepartments = async () => {
     try {
-      const response = await axios.get(`http://localhost:5000/api/schools/${selectedSchool}/departments`, {
+      const response = await axios.get(`${apiPath}/api/schools/${selectedSchool}/departments`, {
         headers: {
           Authorization: `Bearer ${getAuthToken()}`
         }
@@ -112,7 +113,7 @@ function ManageStudent() {
 
   const fetchCourses = async () => {
     try {
-      const response = await axios.get(`http://localhost:5000/api/schools/${selectedSchool}/departments/${selectedDepartment}/courses`, {
+      const response = await axios.get(`${apiPath}/api/schools/${selectedSchool}/departments/${selectedDepartment}/courses`, {
         headers: {
           Authorization: `Bearer ${getAuthToken()}`
         }
@@ -130,7 +131,7 @@ function ManageStudent() {
     }
 
     try {
-      const response = await axios.get('http://localhost:5000/api/student', {
+      const response = await axios.get(`${apiPath}/api/student`, {
         headers: {
           Authorization: `Bearer ${getAuthToken()}`
         },
@@ -151,7 +152,7 @@ function ManageStudent() {
   const handleAddStudent = async (e) => {
     e.preventDefault();
     try {
-      await axios.post('http://localhost:5000/api/student', 
+      await axios.post(`${apiPath}/api/student`, 
         {
           ...newStudent,
           school_id: selectedSchool,
@@ -185,7 +186,7 @@ function ManageStudent() {
     }
 
     try {
-      await axios.delete(`http://localhost:5000/api/student/${studentId}`, {
+      await axios.delete(`${apiPath}/api/student/${studentId}`, {
         headers: {
           Authorization: `Bearer ${getAuthToken()}`
         }

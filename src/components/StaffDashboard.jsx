@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import TimetableTable from './TimetableTable';
 import { jwtDecode } from 'jwt-decode';
+import { apiPath } from '../path/apiPath';
 
 const StaffDashboard = () => {
   const [selectedSemesterType, setSelectedSemesterType] = useState('even');
@@ -60,7 +61,7 @@ const StaffDashboard = () => {
         token: token ? 'Present' : 'Missing'
       });
       
-      const response = await axios.get(`http://localhost:5000/api/users/details/${userId}`, {
+      const response = await axios.get(`${apiPath}/api/users/details/${userId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       
@@ -99,14 +100,14 @@ const StaffDashboard = () => {
       
       // First fetch courses for the department
       const coursesResponse = await axios.get(
-        `http://localhost:5000/api/schools/${staffDetails.school}/departments/${staffDetails.department}/courses`,
+        `${apiPath}/api/schools/${staffDetails.school}/departments/${staffDetails.department}/courses`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       const departmentCourses = Array.isArray(coursesResponse.data) ? coursesResponse.data : [];
       setCourses(departmentCourses);
 
       // Then fetch saved timetable
-      const timetableResponse = await axios.get(`http://localhost:5000/api/timetable/generated`, {
+      const timetableResponse = await axios.get(`${apiPath}/api/timetable/generated`, {
         headers: { Authorization: `Bearer ${token}` },
         params: {
           department_id: staffDetails.department,
