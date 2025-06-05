@@ -90,7 +90,7 @@ export default function Login() {
     setErrors({});
 
     try {
-      const response = await axios.post(`${import.meta.env.VITE_BASE_URL}/api/auth/login`, {
+      const response = await axios.post(`${apiPath}/api/auth/login`, {
         email: formData.email || formData.rollNumber, // Use email or roll number
         password: formData.password
       });
