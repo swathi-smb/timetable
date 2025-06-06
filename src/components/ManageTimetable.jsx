@@ -105,7 +105,9 @@ function ManageTimetable() {
   useEffect(() => {
     if (selectedSchool && selectedDepartment) {
       setIsLoading(true);
-      axios.get(`${apiPath}/api/schools/${selectedSchool}/departments/${selectedDepartment}/courses`, { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } })
+      axios.get(`${apiPath}/api/schools/${selectedSchool}/departments/${selectedDepartment}/courses`, { 
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } 
+      })
         .then(res => {
           console.log("Raw courses response:", JSON.stringify(res.data, null, 2));
           const coursesData = Array.isArray(res.data) ? res.data : [res.data];
@@ -173,20 +175,31 @@ function ManageTimetable() {
 
       const response = await axios.get(
         `${apiPath}/api/staff`,
-        { headers: { Authorization: `Bearer ${token}` } }
+        {
+          params: {
+            school_id: selectedSchool,
+            department_id: selectedDepartment
+          },
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }
       );
 
-      if (response.data.length > 0) {
+      if (response.data && response.data.length > 0) {
         setStaffList(response.data);
         console.log("Fetched staff:", response.data);
         // Fetch subjects after getting staff
         fetchSubjects();
       } else {
         console.warn("No staff found.");
+        setStaffList([]); // Clear staff list
         alert("No staff found for the selected department.");
       }
     } catch (error) {
       console.error("Error fetching staff:", error);
+      setStaffList([]); // Clear staff list on error
       alert(error.response?.data?.message || "There was an issue fetching the staff.");
     }
   };
