@@ -265,7 +265,7 @@ const ManageSubjects = () => {
   
     try {
       const response = await axios.post(
-        `${apiPath}/api/schools/subjects`,
+        `${apiPath}/api/subjects/subjects`,
         subjectData,
         {
           headers: {
@@ -318,7 +318,7 @@ const handleUpdateSubject = async () => {
 
     // Fix the endpoint to match your backend route
     await axios.put(
-      `${apiPath}/api/schools/subjects/${editingSubject.id || editingSubject.subject_id}`,
+      `${apiPath}/api/subjects/subjects/${editingSubject.id || editingSubject.subject_id}`,
       updatedSubject,
       {
         headers: {
@@ -345,7 +345,7 @@ const handleUpdateSubject = async () => {
     if (!window.confirm("Are you sure you want to delete this subject?")) return;
 
     try {
-      await axios.delete(`${apiPath}/api/schools/subjects/${subjectId}`, {
+      await axios.delete(`${apiPath}/api/subjects/subjects/${subjectId}`, {
         headers: {
           Authorization: `Bearer ${sessionStorage.getItem('token')}`
         }
