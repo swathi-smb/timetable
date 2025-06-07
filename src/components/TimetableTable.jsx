@@ -550,7 +550,7 @@ const TimetableTable = ({ timetableData, timeConfig, courseList = [] }) => {
           return (
             <div key={courseId} className="mb-8">
               <h3 className="text-lg font-bold mb-2">
-                Course Name: {courseName}
+                Course: {courseName}
               </h3>
               <div className="overflow-x-auto">
                 <table className="min-w-full border border-gray-300">

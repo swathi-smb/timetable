@@ -245,6 +245,9 @@ function ManageTimetable() {
           } else {
             console.log(`Found matching course for ${subject.subject_name}:`, course);
           }
+
+          // Get the course name from the Course model if available
+          const courseName = subject.Course?.course_name || course?.course_name || `Course ${subjectCourseId}`;
           
           return {
             subject_id: subject.subject_id,
@@ -252,9 +255,9 @@ function ManageTimetable() {
             theory_credits: subject.theory_credits,
             lab_credits: subject.lab_credits,
             staff_id: subject.staff_id || null,
-            staff_name: subject.Staff ? subject.staff_name : null,
+            staff_name: subject.Staff ? subject.Staff.staff_name : null,
             course_id: subjectCourseId,
-            course_name: course?.course_name || `Course ${subjectCourseId}`
+            course_name: courseName
           };
         });
         
@@ -494,11 +497,11 @@ function ManageTimetable() {
         {subjects.length > 0 ? (
           <div className="space-y-4">
             {subjectAllocations.map(allocation => (
-              <div key={allocation.subject_id} className="flex items-center gap-4 p-3 bg-gray-50 rounded-lg">
+              <div key={allocation.subject_id} className="flex items-center justify-between p-4 bg-white rounded shadow mb-2">
                 <div className="w-1/3">
                   <span className="font-medium">{allocation.subject_name}</span>
                   <div className="text-sm text-gray-600">
-                    Course: {allocation.course_name} <br />
+                    Course: {allocation.course_name || `Course ${allocation.course_id}`} <br />
                     Credits: {allocation.theory_credits}+{allocation.lab_credits}
                   </div>
                 </div>
