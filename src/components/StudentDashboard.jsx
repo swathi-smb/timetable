@@ -59,7 +59,7 @@ const StudentDashboard = () => {
       console.log('Fetching student details for userId:', userId);
       console.log('Using token:', token);
       
-      const response = await axios.get(`http://localhost:5000/api/users/details/${userId}`, {
+      const response = await axios.get(`{apiPath}/api/users/details/${userId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       
