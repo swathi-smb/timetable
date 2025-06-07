@@ -354,7 +354,7 @@ const TimetableTable = ({ timetableData, timeConfig, courseList = [] }) => {
         </div>
         {slot.slot_type !== 'free' && slot.slot_type !== 'lunch' && slot.slot_type !== 'ge' && (
           <div className={`text-xs ${hasStaffConflict ? 'text-red-600' : 'text-gray-600'}`}>
-            {slot.staff_name || 'No Staff'}
+            {slot.staff_name ? slot.staff_name.split(',').map(name => name.trim()).join(', ') : 'No Staff'}
             {hasStaffConflict && (
               <div className="text-red-500 text-xs font-medium mt-1">
                 Staff Conflict!

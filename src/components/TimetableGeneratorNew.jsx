@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import axios from '../utils/axios';
+import axios from 'axios';
+import { apiPath } from '../path/apiPath';
 
 const TimetableGeneratorNew = ({
   schoolId,
@@ -16,12 +17,28 @@ const TimetableGeneratorNew = ({
       setIsGenerating(true);
       setValidationErrors([]);
 
-      const response = await axios.post('/api/timetable/generate', {
-        school_id: schoolId,
-        department_id: departmentId,
-        timeConfig,
-        semesterType
-      });
+      // Get the token from sessionStorage
+      const token = sessionStorage.getItem('token');
+      if (!token) {
+        setValidationErrors(['Authentication required. Please log in again.']);
+        return;
+      }
+
+      const response = await axios.post(
+        `${apiPath}/api/timetable/generate`,
+        {
+          school_id: schoolId,
+          department_id: departmentId,
+          timeConfig,
+          semesterType
+        },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          }
+        }
+      );
 
       console.log('Timetable generation response:', response.data);
       
