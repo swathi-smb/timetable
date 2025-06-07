@@ -105,11 +105,13 @@ function ManageTimetable() {
   useEffect(() => {
     if (selectedSchool && selectedDepartment) {
       setIsLoading(true);
+      console.log("[DEBUG] Fetching courses for school:", selectedSchool, "department:", selectedDepartment);
+      
       axios.get(`${apiPath}/api/schools/${selectedSchool}/departments/${selectedDepartment}/courses`, { 
         headers: { Authorization: `Bearer ${sessionStorage.getItem("token")}` } 
       })
         .then(res => {
-          console.log("Raw courses response:", JSON.stringify(res.data, null, 2));
+          console.log("[DEBUG] Raw courses response:", JSON.stringify(res.data, null, 2));
           const coursesData = Array.isArray(res.data) ? res.data : [res.data];
           // Ensure all course_ids are strings for consistent comparison
           const normalizedCourses = coursesData.map(course => ({
@@ -117,20 +119,31 @@ function ManageTimetable() {
             course_id: String(course.course_id)
           }));
           
+          console.log("[DEBUG] Normalized courses:", normalizedCourses);
+          
           // First set the courses
           setCourses(normalizedCourses);
-          console.log("Normalized courses:", normalizedCourses);
           
-          // Then fetch staff and subjects sequentially using the normalized courses
-          return fetchStaff().then(() => fetchSubjects(normalizedCourses));
+          // Only fetch subjects if we have courses
+          if (normalizedCourses.length > 0) {
+            return fetchStaff().then(() => fetchSubjects(normalizedCourses));
+          } else {
+            console.warn("[DEBUG] No courses found for the selected school and department");
+            setSubjects([]);
+            setSubjectAllocations([]);
+          }
         })
         .catch(error => {
-          console.error("Error fetching courses:", error);
+          console.error("[DEBUG] Error fetching courses:", error);
           setCourses([]);
+          setSubjects([]);
+          setSubjectAllocations([]);
         })
         .finally(() => setIsLoading(false));
     } else {
       setCourses([]);
+      setSubjects([]);
+      setSubjectAllocations([]);
     }
   }, [selectedSchool, selectedDepartment]);
 
@@ -208,12 +221,17 @@ function ManageTimetable() {
   const fetchSubjects = async (coursesData = null) => {
     try {
       if (!selectedSchool || !selectedDepartment) {
-        console.warn("School and department must be selected to fetch subjects.");
+        console.warn("[DEBUG] School and department must be selected to fetch subjects.");
         return;
       }
 
       const currentCourses = coursesData || courses;
-      console.log("Using courses for subject mapping:", currentCourses);
+      console.log("[DEBUG] Using courses for subject mapping:", currentCourses);
+
+      if (!currentCourses || currentCourses.length === 0) {
+        console.warn("[DEBUG] No courses available for subject mapping");
+        return;
+      }
 
       const response = await axios.get(
         `${apiPath}/api/timetable/subjects`,
@@ -228,26 +246,36 @@ function ManageTimetable() {
         }
       );
 
+      console.log("[DEBUG] Raw subjects response:", response.data);
+
       if (response.data && response.data.length > 0) {
         setSubjects(response.data);
-        console.log("Fetched subjects:", response.data);
         
         // Initialize allocations with normalized course ID matching
         const initialAllocations = response.data.map(subject => {
-          const subjectCourseId = String(subject.course_id);
-          console.log(`Looking for course with ID ${subjectCourseId} for subject ${subject.subject_name}`);
-          console.log("Available courses:", currentCourses.map(c => ({id: c.course_id, name: c.course_name})));
+          // Get the course_id from the subject's Course association if available
+          const subjectCourseId = subject.Course?.course_id || subject.course_id;
+          console.log(`[DEBUG] Subject ${subject.subject_name} - Original course_id:`, subjectCourseId);
           
-          const course = currentCourses.find(course => String(course.course_id) === subjectCourseId);
-          
-          if (!course) {
-            console.warn(`No course found for subject ${subject.subject_name} (${subject.subject_id}) with course_id ${subjectCourseId}`);
-          } else {
-            console.log(`Found matching course for ${subject.subject_name}:`, course);
+          if (!subjectCourseId) {
+            console.warn(`[DEBUG] No course_id found for subject ${subject.subject_name} (${subject.subject_id})`);
+            return null;
           }
 
+          const courseId = String(subjectCourseId);
+          console.log(`[DEBUG] Subject ${subject.subject_name} - Converted course_id:`, courseId);
+          
+          const course = currentCourses.find(course => String(course.course_id) === courseId);
+          
+          if (!course) {
+            console.warn(`[DEBUG] No course found for subject ${subject.subject_name} (${subject.subject_id}) with course_id ${courseId}`);
+            return null;
+          }
+
+          console.log(`[DEBUG] Found matching course for ${subject.subject_name}:`, course);
+
           // Get the course name from the Course model if available
-          const courseName = subject.Course?.course_name || course?.course_name || `Course ${subjectCourseId}`;
+          const courseName = subject.Course?.course_name || course?.course_name || `Course ${courseId}`;
           
           return {
             subject_id: subject.subject_id,
@@ -256,21 +284,21 @@ function ManageTimetable() {
             lab_credits: subject.lab_credits,
             staff_id: subject.staff_id || null,
             staff_name: subject.Staff ? subject.Staff.staff_name : null,
-            course_id: subjectCourseId,
+            course_id: courseId,
             course_name: courseName
           };
-        });
+        }).filter(Boolean); // Remove any null entries
         
-        console.log("Setting subject allocations:", initialAllocations);
+        console.log("[DEBUG] Final initialAllocations:", initialAllocations);
         setSubjectAllocations(initialAllocations);
       } else {
-        console.warn("No subjects found.");
+        console.warn("[DEBUG] No subjects found.");
         setSubjects([]);
         setSubjectAllocations([]);
       }
     } catch (error) {
-      console.error("Error fetching subjects:", error);
-      console.error("Error details:", error.response?.data);
+      console.error("[DEBUG] Error fetching subjects:", error);
+      console.error("[DEBUG] Error details:", error.response?.data);
       alert("Error fetching subjects. Please try again.");
     }
   };
@@ -297,40 +325,58 @@ function ManageTimetable() {
     try {
       setValidationErrors([]);
 
-      // Filter out allocations without staff
+      // Filter out allocations without staff or with invalid course_id
       const validAllocations = subjectAllocations
-        .filter(a => a.staff_id)
-        .map(({ subject_id, subject_name, staff_id, staff_name, theory_credits, lab_credits, course_id }) => ({
-          school_id: selectedSchool,
-          department_id: selectedDepartment,
-          course_id,
-          subject_id,
-          subject_name,
-          staff_id,
-          staff_name,
-          theory_credits,
-          lab_credits
-        }));
+        .filter(a => a.staff_id && a.course_id && !isNaN(parseInt(a.course_id, 10)))
+        .map(({ subject_id, subject_name, staff_id, staff_name, theory_credits, lab_credits, course_id }) => {
+          console.log(`[DEBUG] Before save - Subject ${subject_name} - course_id:`, course_id, 'type:', typeof course_id);
+          const parsedCourseId = parseInt(course_id, 10);
+          console.log(`[DEBUG] After parsing - Subject ${subject_name} - course_id:`, parsedCourseId, 'type:', typeof parsedCourseId);
+          
+          if (isNaN(parsedCourseId)) {
+            console.warn(`[DEBUG] Invalid course_id for subject ${subject_name}:`, course_id);
+            return null;
+          }
+          
+          return {
+            school_id: selectedSchool,
+            department_id: selectedDepartment,
+            course_id: parsedCourseId,
+            subject_id,
+            subject_name,
+            staff_id,
+            staff_name,
+            theory_credits,
+            lab_credits
+          };
+        })
+        .filter(Boolean); // Remove any null entries
+
+      console.log("[DEBUG] Final validAllocations to be sent:", validAllocations);
 
       if (validAllocations.length === 0) {
-        setValidationErrors(["Please assign staff to at least one subject"]);
+        setValidationErrors(["Please assign staff to at least one subject and ensure all subjects have valid course assignments"]);
         return;
       }
 
+      // Log the complete request payload
+      const requestPayload = {
+        allocations: validAllocations,
+        timeConfig: {
+          workingDays: timeConfig.workingDays,
+          dayStart: timeConfig.dayStart,
+          dayEnd: timeConfig.dayEnd,
+          lunchStart: timeConfig.lunchStart,
+          lunchEnd: timeConfig.lunchEnd,
+          theoryDuration: timeConfig.theoryDuration,
+          labDuration: timeConfig.labDuration
+        }
+      };
+      console.log("[DEBUG] Complete request payload:", requestPayload);
+
       const response = await axios.post(
         `${apiPath}/api/timetable/allocate`,
-        {
-          allocations: validAllocations,
-          timeConfig: {
-            workingDays: timeConfig.workingDays,
-            dayStart: timeConfig.dayStart,
-            dayEnd: timeConfig.dayEnd,
-            lunchStart: timeConfig.lunchStart,
-            lunchEnd: timeConfig.lunchEnd,
-            theoryDuration: timeConfig.theoryDuration,
-            labDuration: timeConfig.labDuration
-          }
-        },
+        requestPayload,
         {
           headers: {
             Authorization: `Bearer ${sessionStorage.getItem("token")}`,
@@ -339,14 +385,24 @@ function ManageTimetable() {
         }
       );
 
-      setIsAllocationSaved(true);
-      setTimeout(() => setIsAllocationSaved(false), 3000);
-      alert("Allocations saved successfully!");
+      console.log("[DEBUG] Save response:", response.data);
+
+      if (response.data && response.data.message) {
+        setIsAllocationSaved(true);
+        setTimeout(() => setIsAllocationSaved(false), 3000);
+        alert("Allocations saved successfully!");
+      } else {
+        throw new Error("Invalid response from server");
+      }
     } catch (error) {
-      console.error("Error saving allocations:", error);
+      console.error("[DEBUG] Error saving allocations:", error);
+      console.error("[DEBUG] Error response data:", error.response?.data);
+      console.error("[DEBUG] Error status:", error.response?.status);
+      console.error("[DEBUG] Error headers:", error.response?.headers);
 
       const errorMessage = error.response?.data?.error ||
         error.response?.data?.message ||
+        error.message ||
         "Failed to save allocations";
 
       if (error.response?.data?.errors) {
@@ -354,6 +410,9 @@ function ManageTimetable() {
       } else {
         setValidationErrors([errorMessage]);
       }
+
+      // Show more detailed error message to user
+      alert(`Error saving allocations: ${errorMessage}\nPlease check the console for more details.`);
     }
   };
 
