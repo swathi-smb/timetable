@@ -106,7 +106,7 @@ function ManageTimetable() {
     if (selectedSchool && selectedDepartment) {
       setIsLoading(true);
       axios.get(`${apiPath}/api/schools/${selectedSchool}/departments/${selectedDepartment}/courses`, { 
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } 
+        headers: { Authorization: `Bearer ${sessionStorage.getItem("token")}` } 
       })
         .then(res => {
           console.log("Raw courses response:", JSON.stringify(res.data, null, 2));
@@ -168,7 +168,7 @@ function ManageTimetable() {
         return;
       }
 
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
       if (!token) {
         throw new Error("Authorization token missing");
       }
@@ -223,7 +223,7 @@ function ManageTimetable() {
             department_id: selectedDepartment
           },
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
+            Authorization: `Bearer ${sessionStorage.getItem("token")}`,
           },
         }
       );
@@ -330,7 +330,7 @@ function ManageTimetable() {
         },
         {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
+            Authorization: `Bearer ${sessionStorage.getItem("token")}`,
             'Content-Type': 'application/json'
           }
         }

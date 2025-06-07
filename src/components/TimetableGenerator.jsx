@@ -22,7 +22,7 @@ const TimetableViewer = ({
     try {
       setLoading(true);
       setErrors([]);
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
 
       const currentYear = new Date().getFullYear();
       const semester = new Date().getMonth() + 1 >= 6 ? 2 : 1;

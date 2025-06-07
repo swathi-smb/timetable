@@ -18,9 +18,9 @@ function ManageStudent() {
     semester: ''
   });
 
-  // Get token from localStorage
+  // Get token from sessionStorage
   const getAuthToken = () => {
-    return localStorage.getItem('token');
+    return sessionStorage.getItem('token');
   };
 
   // Configure axios defaults

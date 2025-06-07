@@ -269,7 +269,7 @@ const ManageSubjects = () => {
         subjectData,
         {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}`
+            Authorization: `Bearer ${sessionStorage.getItem('token')}`
           }
         }
       );
@@ -322,7 +322,7 @@ const handleUpdateSubject = async () => {
       updatedSubject,
       {
         headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`
+          Authorization: `Bearer ${sessionStorage.getItem('token')}`
         }
       }
     );
@@ -347,7 +347,7 @@ const handleUpdateSubject = async () => {
     try {
       await axios.delete(`${apiPath}/api/schools/subjects/${subjectId}`, {
         headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`
+          Authorization: `Bearer ${sessionStorage.getItem('token')}`
         }
       });
       alert("Subject deleted successfully!");

@@ -28,7 +28,7 @@ const StudentDashboard = () => {
 
   // Fetch student details when component mounts
   useEffect(() => {
-    const token = localStorage.getItem('token');
+    const token = sessionStorage.getItem('token');
     if (!token) {
       navigate('/login');
       return;
@@ -55,7 +55,7 @@ const StudentDashboard = () => {
 
   const fetchStudentDetails = async (userId) => {
     try {
-      const token = localStorage.getItem('token');
+      const token = sessionStorage.getItem('token');
       console.log('Fetching student details for userId:', userId);
       console.log('Using token:', token);
       
@@ -132,7 +132,7 @@ const StudentDashboard = () => {
     setLoading(true);
     setError(null);
     try {
-      const token = localStorage.getItem('token');
+      const token = sessionStorage.getItem('token');
       
       console.log('Student Details:', {
         school: studentDetails.school,
@@ -218,7 +218,7 @@ const StudentDashboard = () => {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
+    sessionStorage.removeItem('token');
     navigate('/');
   };
 

@@ -14,8 +14,8 @@ function AdminDashboard() {
   const navigate = useNavigate();
 
   const handleLogout = () => {
-    console.log("token: ", localStorage.getItem("token"));
-    localStorage.removeItem("token");
+    console.log("token: ", sessionStorage.getItem("token"));
+    sessionStorage.removeItem("token");
     navigate("/");
   };
 

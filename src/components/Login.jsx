@@ -21,8 +21,8 @@ export default function Login() {
 
   // Redirect if already logged in
   useEffect(() => {
-    const storedToken = localStorage.getItem('token');
-    const storedRole = localStorage.getItem('role_id');
+    const storedToken = sessionStorage.getItem('token');
+    const storedRole = sessionStorage.getItem('role_id');
     
     if (storedToken && storedRole) {
       setTimeout(() => {
@@ -34,10 +34,10 @@ export default function Login() {
   }, []);
   
   
-  // Load saved credentials from localStorage
+  // Load saved credentials from sessionStorage
   useEffect(() => {
-    const savedEmail = localStorage.getItem('savedEmail');
-    const savedPassword = localStorage.getItem('savedPassword');
+    const savedEmail = sessionStorage.getItem('savedEmail');
+    const savedPassword = sessionStorage.getItem('savedPassword');
 
     if (savedEmail && savedPassword) {
       setFormData({
@@ -110,16 +110,16 @@ export default function Login() {
         throw new Error("No token received");
       }
 
-      localStorage.setItem('token', token);
+      sessionStorage.setItem('token', token);
       console.log("token: ", token);
-      localStorage.setItem('role_id', role_id.toString());
+      sessionStorage.setItem('role_id', role_id.toString());
 
       if (savePassword) {
-        localStorage.setItem('savedEmail', formData.email);
-        localStorage.setItem('savedPassword', formData.password);
+        sessionStorage.setItem('savedEmail', formData.email);
+        sessionStorage.setItem('savedPassword', formData.password);
       } else {
-        localStorage.removeItem('savedEmail');
-        localStorage.removeItem('savedPassword');
+        sessionStorage.removeItem('savedEmail');
+        sessionStorage.removeItem('savedPassword');
       }
 
       // Redirect user based on role

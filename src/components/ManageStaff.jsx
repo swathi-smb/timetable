@@ -17,14 +17,14 @@ const ManageStaff = () => {
   }, []);
 
   // Get authentication token
-  const token = localStorage.getItem("token");
+  const token = sessionStorage.getItem("token");
 
   // Fetch Schools
   const fetchSchools = async () => {
     try {
       const res = await axios.get(`${apiPath}/api/staff/schools`, {
         headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`
+          Authorization: `Bearer ${sessionStorage.getItem('token')}`
         }
       });
       setSchools(res.data);
@@ -38,7 +38,7 @@ const ManageStaff = () => {
     try {
       const res = await axios.get(`${apiPath}/api/staff/departments/${school_id}`, {
         headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`
+          Authorization: `Bearer ${sessionStorage.getItem('token')}`
         }
       });
       setDepartments(res.data);
@@ -59,7 +59,7 @@ const ManageStaff = () => {
       }
       const response = await axios.get(url, {
         headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`
+          Authorization: `Bearer ${sessionStorage.getItem('token')}`
         }
       });
       setStaffList(response.data);
@@ -87,7 +87,7 @@ const ManageStaff = () => {
         },
         {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}`
+            Authorization: `Bearer ${sessionStorage.getItem('token')}`
           },
         }
       );
@@ -118,7 +118,7 @@ const ManageStaff = () => {
         },
         {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}`
+            Authorization: `Bearer ${sessionStorage.getItem('token')}`
           },
         }
       );
@@ -137,7 +137,7 @@ const ManageStaff = () => {
     try {
       await axios.delete(`${apiPath}/api/staff/${id}`, {
         headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`
+          Authorization: `Bearer ${sessionStorage.getItem('token')}`
         },
       });
       alert("Staff deleted successfully!");

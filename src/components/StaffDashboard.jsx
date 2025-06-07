@@ -28,7 +28,7 @@ const StaffDashboard = () => {
 
   // Fetch staff details when component mounts
   useEffect(() => {
-    const token = localStorage.getItem('token');
+    const token = sessionStorage.getItem('token');
     if (!token) {
       navigate('/login');
       return;
@@ -55,7 +55,7 @@ const StaffDashboard = () => {
 
   const fetchStaffDetails = async (userId) => {
     try {
-      const token = localStorage.getItem('token');
+      const token = sessionStorage.getItem('token');
       console.log('[StaffDashboard] Fetching staff details:', {
         userId,
         token: token ? 'Present' : 'Missing'
@@ -96,7 +96,7 @@ const StaffDashboard = () => {
     setLoading(true);
     setError(null);
     try {
-      const token = localStorage.getItem('token');
+      const token = sessionStorage.getItem('token');
       
       // First fetch courses for the department
       const coursesResponse = await axios.get(
@@ -143,7 +143,7 @@ const StaffDashboard = () => {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
+    sessionStorage.removeItem('token');
     navigate('/');
   };
 

@@ -6,7 +6,7 @@ import { apiPath } from '../path/apiPath';
 const PendingUsersSection = () => {
   const [pendingUsers, setPendingUsers] = useState([]);
   const [loading, setLoading] = useState(true);
-  const token = localStorage.getItem('token');
+  const token = sessionStorage.getItem('token');
 
   const fetchPendingUsers = async () => {
     try {
