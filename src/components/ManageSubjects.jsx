@@ -307,18 +307,57 @@ const handleUpdateSubject = async () => {
   if (!editingSubject) return alert("No subject selected for update!");
 
   try {
+    let theoryCredits = 0;
+    let labCredits = 0;
+
+    // Handle project credits differently
+    if (subjectType.toLowerCase() === 'project') {
+      theoryCredits = Number(credits) || 0;
+      labCredits = 0;
+    } else if (subjectType.toLowerCase() === 'both') {
+      if (!credits.includes('+')) {
+        alert("For 'Both' type, please use format like '4+1'");
+        return;
+      }
+      const [first, second] = credits.split('+').map(Number);
+      
+      if (isNaN(first) || isNaN(second)) {
+        alert("Please enter valid numbers (e.g., '4+1')");
+        return;
+      }
+
+      // Assign larger number to theory, smaller to lab
+      if (first > second) {
+        theoryCredits = first;
+        labCredits = second;
+      } else if (second > first) {
+        theoryCredits = second;
+        labCredits = first;
+      } else {
+        alert("Lab credits must be less than theory credits");
+        return;
+      }
+    } else if (subjectType.toLowerCase() === 'theory') {
+      theoryCredits = Number(credits) || 0;
+      labCredits = 0;
+    } else if (subjectType.toLowerCase() === 'lab') {
+      theoryCredits = 0;
+      labCredits = Number(credits) || 0;
+    }
+
     const updatedSubject = {
       subject_name: subjectName,
       sub_type: subjectType,
       subject_category: subjectCategory,
-      theory_credits: credits.includes('+') ? credits.split('+')[0] : credits,
-      lab_credits: credits.includes('+') ? credits.split('+')[1] : 0,
-      modified_by: 1 // or get from auth
+      theory_credits: theoryCredits,
+      lab_credits: labCredits,
+      modified_by: 1
     };
 
-    // Fix the endpoint to match your backend route
-    await axios.put(
-      `${apiPath}/api/subjects/subjects/${editingSubject.id || editingSubject.subject_id}`,
+    console.log("Sending update data:", updatedSubject);
+
+    const response = await axios.put(
+      `${apiPath}/api/subjects/subjects/${editingSubject.subject_id}`,
       updatedSubject,
       {
         headers: {
@@ -327,9 +366,11 @@ const handleUpdateSubject = async () => {
       }
     );
 
+    console.log("Update response:", response.data);
+
     alert("Subject updated successfully!");
     resetForm();
-    fetchSubjects();
+    fetchSubjects(); // Refresh the subjects list
   } catch (error) {
     console.error("Error updating subject:", error);
     alert(`Failed to update subject: ${error.response?.data?.error || error.message}`);
@@ -598,12 +639,12 @@ const handleUpdateSubject = async () => {
             </button>
           )}
         </div>
-        <button
+        {/* <button
           onClick={fetchSubjects}
           className="mt-2 px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
         >
           Load Subjects
-        </button>
+        </button> */}
 
       </div>
 
