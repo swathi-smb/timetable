@@ -20,6 +20,7 @@ function ManageStudent() {
 
   // Get token from sessionStorage
   const getAuthToken = () => {
+    console.log(sessionStorage.getItem('token'));
     return sessionStorage.getItem('token');
   };
 
@@ -161,7 +162,7 @@ function ManageStudent() {
         },
         {
           headers: {
-            Authorization: `Bearer ${getAuthToken()}`
+            Authorization: `Bearer ${sessionStorage.getItem('token')}`
           }
         }
       );
@@ -181,20 +182,31 @@ function ManageStudent() {
   };
 
   const handleDeleteStudent = async (studentId) => {
-    if (!window.confirm('Are you sure you want to delete this student?')) {
+    if (!window.confirm('Are you sure you want to delete this student? This action cannot be undone.')) {
       return;
     }
 
     try {
-      await axios.delete(`${apiPath}/api/student/${studentId}`, {
+      const response = await axios.delete(`${apiPath}/api/student/${studentId}`, {
         headers: {
-          Authorization: `Bearer ${getAuthToken()}`
+          Authorization: `Bearer ${sessionStorage.getItem('token')}`
         }
       });
+      
+      // Show success message
+      alert(response.data.message || 'Student deleted successfully');
       fetchStudents();
     } catch (error) {
       console.error('Error deleting student:', error);
-      alert(error.response?.data?.message || 'Failed to delete student');
+      
+      // Handle specific error cases
+      if (error.response?.status === 409) {
+        alert('Cannot delete student: ' + (error.response.data.error || 'This student has related records that must be deleted first'));
+      } else if (error.response?.status === 404) {
+        alert('Student not found');
+      } else {
+        alert(error.response?.data?.message || 'Failed to delete student. Please try again.');
+      }
     }
   };
 
