@@ -46,7 +46,9 @@ const TimetableTable = ({ timetableData, timeConfig, courseList = [] }) => {
   const [courseClassTables, setCourseClassTables] = useState([]);
   const [showSaveDialog, setShowSaveDialog] = useState(false);
   const [timetableName, setTimetableName] = useState('');
-  const [saveStatus, setSaveStatus] = useState('');  const [editingCell, setEditingCell] = useState(null);
+  const [saveStatus, setSaveStatus] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
+  const [editingCell, setEditingCell] = useState(null);
   const [editedData, setEditedData] = useState({});
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [currentEdit, setCurrentEdit] = useState(null);
@@ -81,7 +83,7 @@ const TimetableTable = ({ timetableData, timeConfig, courseList = [] }) => {
       // Process each course's data
       const processedTables = Object.entries(courseGroups).map(([courseId, { semesters, slots }]) => {
         // Get unique time slots
-        const timeSlots = [...new Set(slots.map(slot => 
+        const timeSlots = [...new Set(slots.map(slot =>
           `${slot.start_time}-${slot.end_time}`
         ))].sort();
 
@@ -110,9 +112,9 @@ const TimetableTable = ({ timetableData, timeConfig, courseList = [] }) => {
                   day: dayIndex
                 }];
               } else {
-                timetable[day][timeSlot][semester] = slots.filter(slot => 
-                  slot.day === dayIndex && 
-                  slot.start_time === startTime && 
+                timetable[day][timeSlot][semester] = slots.filter(slot =>
+                  slot.day === dayIndex &&
+                  slot.start_time === startTime &&
                   slot.end_time === endTime &&
                   String(slot.semester) === String(semester)
                 );
@@ -147,7 +149,7 @@ const TimetableTable = ({ timetableData, timeConfig, courseList = [] }) => {
         acc[timeKey] = [];
       }
       acc[timeKey].push(slot);
-      
+
       // Debug: Check if this time group has potential staff conflicts
       if (acc[timeKey].length > 1) {
         console.log('Multiple slots in time group:', {
@@ -161,7 +163,7 @@ const TimetableTable = ({ timetableData, timeConfig, courseList = [] }) => {
           }))
         });
       }
-      
+
       return acc;
     }, {});
 
@@ -170,16 +172,16 @@ const TimetableTable = ({ timetableData, timeConfig, courseList = [] }) => {
   // Add this function to check for staff conflicts
   const checkStaffConflict = (currentSlot, allSlots) => {
     // Skip if no subject/staff or if it's a free/lunch slot
-    if (!currentSlot.subject_name || 
-        !currentSlot.staff_id || 
-        !currentSlot.staff_name || 
-        currentSlot.slot_type === 'free' || 
-        currentSlot.slot_type === 'lunch') {
+    if (!currentSlot.subject_name ||
+      !currentSlot.staff_id ||
+      !currentSlot.staff_name ||
+      currentSlot.slot_type === 'free' ||
+      currentSlot.slot_type === 'lunch') {
       return false;
     }
 
     // Only check against active teaching slots
-    const activeSlots = allSlots.filter(s => 
+    const activeSlots = allSlots.filter(s =>
       s.subject_name && // has subject
       s.staff_id && // has staff
       !['free', 'lunch'].includes(s.slot_type) // is a class slot
@@ -206,7 +208,7 @@ const TimetableTable = ({ timetableData, timeConfig, courseList = [] }) => {
       const hasSharedStaff = currentStaffIds.some(id => slotStaffIds.includes(id));
 
       // Check for same staff at same time
-      const isConflict = 
+      const isConflict =
         hasSharedStaff && // Same staff
         slot.day === currentSlot.day && // Same day
         slot.start_time === currentSlot.start_time; // Same time
@@ -253,7 +255,7 @@ const TimetableTable = ({ timetableData, timeConfig, courseList = [] }) => {
 
     // Group slots by time
     const timeGroups = groupSlotsByTime(slots);
-    
+
     // Debug logging for time groups
     console.log('Time groups:', {
       groups: Object.entries(timeGroups).map(([time, groupSlots]) => ({
@@ -270,8 +272,8 @@ const TimetableTable = ({ timetableData, timeConfig, courseList = [] }) => {
     const firstTimeGroup = Object.values(timeGroups)[0];
 
     // Check for minor elective pair slots
-    const isElectivePair = firstTimeGroup.length > 1 && firstTimeGroup.every(s => 
-      s.subject_category === 'Minor(Elective)' || s.subject_category === 'Minor (Elective)' || 
+    const isElectivePair = firstTimeGroup.length > 1 && firstTimeGroup.every(s =>
+      s.subject_category === 'Minor(Elective)' || s.subject_category === 'Minor (Elective)' ||
       s.subject_category?.toLowerCase() === 'elective' || s.slot_type === 'minor'
     );
 
@@ -296,9 +298,9 @@ const TimetableTable = ({ timetableData, timeConfig, courseList = [] }) => {
       );
     }    // Regular slot rendering
     const slot = firstTimeGroup[0]; // Get the first slot from the time group
-      // Get all slots from all courses for staff conflict check
+    // Get all slots from all courses for staff conflict check
     const allSlots = Object.values(timetableData.data).flat();
-    
+
     // Debug the raw timetable data structure
     console.log('Raw timetable data:', {
       keys: Object.keys(timetableData.data),
@@ -308,7 +310,7 @@ const TimetableTable = ({ timetableData, timeConfig, courseList = [] }) => {
         sampleSlot: slots[0]
       }))
     });
-    
+
     // Debug all flattened slots
     console.log('All flattened slots:', {
       total: allSlots.length,
@@ -322,7 +324,7 @@ const TimetableTable = ({ timetableData, timeConfig, courseList = [] }) => {
         subject: s.subject_name
       }))
     });
-    
+
     console.log('Checking conflicts for current slot:', {
       staff: slot.staff_name,
       staffId: slot.staff_id,
@@ -333,24 +335,23 @@ const TimetableTable = ({ timetableData, timeConfig, courseList = [] }) => {
       course: slot.course_id,
       totalSlotsToCheck: allSlots.length
     });
-    
+
     const hasStaffConflict = checkStaffConflict(slot, allSlots);
-    
+
     return (
-      <div className={`text-sm p-1 ${
-        hasStaffConflict ? 'bg-red-100 border-l-4 border-red-500' :
-        slot.slot_type === 'lab' ? 'bg-[#e9e4f1ea]' :
-        slot.slot_type === 'lunch' ? 'bg-gray-50' :
-        slot.slot_type === 'free' ? 'bg-green-50' :
-        slot.slot_type === 'ge' ? 'bg-purple-50' :
-        slot.subject_category === 'Minor(Elective)' || slot.slot_type === 'minor' ? 'bg-[#f0dadcde]' : ''
-      }`}>
+      <div className={`text-sm p-1 ${hasStaffConflict ? 'bg-red-100 border-l-4 border-red-500' :
+          slot.slot_type === 'lab' ? 'bg-[#e9e4f1ea]' :
+            slot.slot_type === 'lunch' ? 'bg-gray-50' :
+              slot.slot_type === 'free' ? 'bg-green-50' :
+                slot.slot_type === 'ge' ? 'bg-purple-50' :
+                  slot.subject_category === 'Minor(Elective)' || slot.slot_type === 'minor' ? 'bg-[#f0dadcde]' : ''
+        }`}>
         <div className={`font-medium text-xs ${hasStaffConflict ? 'text-red-700' : ''}`}>
           {slot.slot_type === 'free' ? 'FREE' :
-           slot.slot_type === 'lunch' ? 'Lunch Break' :     
-           slot.slot_type === 'ge' ? 'General Elective' :
-           slot.slot_type === 'lab' ? `${slot.subject_name} (Lab)` :
-           slot.subject_name}
+            slot.slot_type === 'lunch' ? 'Lunch Break' :
+              slot.slot_type === 'ge' ? 'General Elective' :
+                slot.slot_type === 'lab' ? `${slot.subject_name} (Lab)` :
+                  slot.subject_name}
         </div>
         {slot.slot_type !== 'free' && slot.slot_type !== 'lunch' && slot.slot_type !== 'ge' && (
           <div className={`text-xs ${hasStaffConflict ? 'text-red-600' : 'text-gray-600'}`}>
@@ -366,67 +367,58 @@ const TimetableTable = ({ timetableData, timeConfig, courseList = [] }) => {
     );
   };
   const handleSaveTimetable = async () => {
-    if (!timetableName.trim()) {
-      setSaveStatus('Please enter a name for the timetable');
-      return;
-    }
-    
     try {
-      const courseId = Object.keys(timetableData.data)[0].split('-')[0];
-      const course = courseList.find(c => String(c.course_id) === String(courseId));
-      
-      if (!course) {
-        setSaveStatus('Error: Course not found');
-        return;
+      setSaveStatus('saving');
+      const token = sessionStorage.getItem('token');
+
+      if (!token || token === 'undefined' || token === 'null') {
+        throw new Error('Authentication token is missing or invalid. Please log in again.');
       }
 
-      // Get modified timetable data including any edits
-      const modifiedData = getModifiedTimetableData();
-      
-      // Add the necessary properties to each slot
-      Object.keys(modifiedData).forEach(key => {
-        modifiedData[key] = modifiedData[key].map(slot => ({
-          ...slot,
-          start_time: slot.start_time,
-          end_time: slot.end_time,
-          semester: key.split('-')[1],
-          course_id: parseInt(courseId),
-          day: days.indexOf(slot.day)
-        }));
-      });      console.log('Saving timetable with data:', {
-        name: timetableName,
-        courseId,
-        departmentId: course.department_id,
-        schoolId: course.school_id
-      });
+      const firstCourseId = Object.keys(timetableData.data)[0].split('-')[0];
+      const course = courseList.find(c => String(c.course_id) === String(firstCourseId));
 
-      const response = await axios.post(`${apiPath}/api/saved-timetables/save`, {
+      if (!course) {
+        throw new Error('Course not found');
+      }
+
+      const saveData = {
         name: timetableName,
-        timetable_data: modifiedData,
-        course_id: parseInt(courseId),
+        timetable_data: JSON.parse(JSON.stringify(timetableData)), // ✅ force safe JSON serialization
+        course_id: parseInt(firstCourseId),
         department_id: course.department_id,
         school_id: course.school_id,
         course_name: course.course_name
-      }, {
+      };
+
+
+      const response = await axios.post(`${apiPath}/api/saved-timetables/save`, saveData, {
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${sessionStorage.getItem('token')}`
+          'Authorization': `Bearer ${token}`
         }
       });
 
       if (response.data.success) {
-        setSaveStatus('Timetable saved successfully!');
+        setSaveStatus('success');
+        setShowSaveDialog(false);
+        setTimetableName('');
+        setSuccessMessage('✅ Timetable saved successfully!');
+
+        // Clear the message after a few seconds
         setTimeout(() => {
-          setShowSaveDialog(false);
-          setSaveStatus('');
-          setTimetableName('');
-        }, 2000);
+          setSuccessMessage('');
+        }, 3000);
+      }
+      else {
+        throw new Error(response.data.message || 'Failed to save timetable');
       }
     } catch (error) {
       console.error('Error saving timetable:', error);
-      setSaveStatus('Error saving timetable. Please try again.');
+      setSaveStatus('error');
     }
   };
+
   const handleCellEdit = (day, slot, semester, slotData) => {
     setCurrentEdit({
       day,
@@ -443,22 +435,22 @@ const TimetableTable = ({ timetableData, timeConfig, courseList = [] }) => {
 
   const handleCellUpdate = (updatedData) => {
     if (!currentEdit) return;
-    
+
     const { day, slot, semester } = currentEdit;
     const cellKey = `${day}-${slot}-${semester}`;
-    
+
     setEditedData(prev => ({
       ...prev,
       [cellKey]: [updatedData]
     }));
-    
+
     setShowEditDialog(false);
     setCurrentEdit(null);
   };
   // Modify the slot data before saving
   const getModifiedTimetableData = () => {
     const modifiedData = { ...timetableData.data };
-    
+
     // First apply any edits
     Object.entries(editedData).forEach(([key, value]) => {
       const [day, slot, semester] = key.split('-');
@@ -466,11 +458,11 @@ const TimetableTable = ({ timetableData, timeConfig, courseList = [] }) => {
       if (courseKey && modifiedData[courseKey]) {
         const dayIndex = days.indexOf(day);
         const [startTime, endTime] = slot.split('-');
-        
+
         // Find if there's an existing slot to update
-        const existingSlotIndex = modifiedData[courseKey].findIndex(s => 
-          s.day === dayIndex && 
-          s.start_time === startTime && 
+        const existingSlotIndex = modifiedData[courseKey].findIndex(s =>
+          s.day === dayIndex &&
+          s.start_time === startTime &&
           s.end_time === endTime
         );
 
@@ -495,7 +487,7 @@ const TimetableTable = ({ timetableData, timeConfig, courseList = [] }) => {
         }
       }
     });
-    
+
     return modifiedData;
   };
 
@@ -543,7 +535,12 @@ const TimetableTable = ({ timetableData, timeConfig, courseList = [] }) => {
           Print Timetable
         </button>
       </div>
-      
+      {successMessage && (
+        <div className="text-green-600 bg-green-100 border border-green-300 rounded px-4 py-2 mb-4 text-sm">
+          {successMessage}
+        </div>
+      )}
+
       <div className="timetable-container">
         {courseClassTables.map(({ courseId, semesters, timeSlots, timetable }) => {
           const courseName = courseList?.find(c => String(c.course_id) === String(courseId))?.course_name || `Course ${courseId}`;
@@ -574,14 +571,14 @@ const TimetableTable = ({ timetableData, timeConfig, courseList = [] }) => {
                               {day}
                             </td>
                           )}
-                          <td className="border p-2 bg-gray-50">Sem {semester}</td>                        
+                          <td className="border p-2 bg-gray-50">Sem {semester}</td>
                           {timeSlots.map(slot => {
                             const cellKey = `${day}-${slot}-${semester}`;
                             const slotData = editedData[cellKey] || timetable[day][slot][semester] || [];
-                            
+
                             return (
-                              <td 
-                                key={cellKey} 
+                              <td
+                                key={cellKey}
                                 className="border p-1 relative cursor-pointer hover:bg-gray-50"
                                 onClick={() => handleCellEdit(day, slot, semester, slotData)}
                               >
@@ -621,7 +618,7 @@ const TimetableTable = ({ timetableData, timeConfig, courseList = [] }) => {
                   className="w-full p-2 border rounded"
                 />
               </div>
-              
+
               <div className="mb-4">
                 <label className="block text-sm font-medium mb-1">Staff Name</label>
                 <input
@@ -677,9 +674,9 @@ const TimetableTable = ({ timetableData, timeConfig, courseList = [] }) => {
 
       {/* Save Dialog */}
       {showSaveDialog && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-          <div className="bg-white p-6 rounded-lg shadow-lg w-96">
-            <h3 className="text-lg font-bold mb-4">Save Timetable</h3>
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg shadow-xl w-96">
+            <h3 className="text-lg font-semibold mb-4">Save Timetable</h3>
             <input
               type="text"
               value={timetableName}
@@ -687,13 +684,6 @@ const TimetableTable = ({ timetableData, timeConfig, courseList = [] }) => {
               placeholder="Enter timetable name"
               className="w-full p-2 border rounded mb-4"
             />
-            {saveStatus && (
-              <p className={`text-sm mb-4 ${
-                saveStatus.includes('success') ? 'text-green-600' : 'text-red-600'
-              }`}>
-                {saveStatus}
-              </p>
-            )}
             <div className="flex justify-end space-x-2">
               <button
                 onClick={() => {
@@ -707,11 +697,18 @@ const TimetableTable = ({ timetableData, timeConfig, courseList = [] }) => {
               </button>
               <button
                 onClick={handleSaveTimetable}
-                className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
+                disabled={!timetableName || saveStatus === 'saving'}
+                className={`px-4 py-2 rounded text-white ${!timetableName || saveStatus === 'saving'
+                    ? 'bg-gray-400'
+                    : 'bg-blue-500 hover:bg-blue-600'
+                  }`}
               >
-                Save
+                {saveStatus === 'saving' ? 'Saving...' : 'Save'}
               </button>
             </div>
+            {saveStatus === 'error' && (
+              <p className="text-red-500 mt-2">Failed to save timetable. Please try again.</p>
+            )}
           </div>
         </div>
       )}

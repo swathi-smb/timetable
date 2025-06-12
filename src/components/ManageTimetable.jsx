@@ -126,7 +126,7 @@ function ManageTimetable() {
           
           // Only fetch subjects if we have courses
           if (normalizedCourses.length > 0) {
-            return fetchStaff().then(() => fetchSubjects(normalizedCourses));
+          return fetchStaff().then(() => fetchSubjects(normalizedCourses));
           } else {
             console.warn("[DEBUG] No courses found for the selected school and department");
             setSubjects([]);
@@ -339,15 +339,15 @@ function ManageTimetable() {
           }
           
           return {
-            school_id: selectedSchool,
-            department_id: selectedDepartment,
+          school_id: selectedSchool,
+          department_id: selectedDepartment,
             course_id: parsedCourseId,
-            subject_id,
-            subject_name,
-            staff_id,
-            staff_name,
-            theory_credits,
-            lab_credits
+          subject_id,
+          subject_name,
+          staff_id,
+          staff_name,
+          theory_credits,
+          lab_credits
           };
         })
         .filter(Boolean); // Remove any null entries
@@ -361,16 +361,16 @@ function ManageTimetable() {
 
       // Log the complete request payload
       const requestPayload = {
-        allocations: validAllocations,
-        timeConfig: {
-          workingDays: timeConfig.workingDays,
-          dayStart: timeConfig.dayStart,
-          dayEnd: timeConfig.dayEnd,
-          lunchStart: timeConfig.lunchStart,
-          lunchEnd: timeConfig.lunchEnd,
-          theoryDuration: timeConfig.theoryDuration,
-          labDuration: timeConfig.labDuration
-        }
+          allocations: validAllocations,
+          timeConfig: {
+            workingDays: timeConfig.workingDays,
+            dayStart: timeConfig.dayStart,
+            dayEnd: timeConfig.dayEnd,
+            lunchStart: timeConfig.lunchStart,
+            lunchEnd: timeConfig.lunchEnd,
+            theoryDuration: timeConfig.theoryDuration,
+            labDuration: timeConfig.labDuration
+          }
       };
       console.log("[DEBUG] Complete request payload:", requestPayload);
 
@@ -388,9 +388,9 @@ function ManageTimetable() {
       console.log("[DEBUG] Save response:", response.data);
 
       if (response.data && response.data.message) {
-        setIsAllocationSaved(true);
-        setTimeout(() => setIsAllocationSaved(false), 3000);
-        alert("Allocations saved successfully!");
+      setIsAllocationSaved(true);
+      setTimeout(() => setIsAllocationSaved(false), 3000);
+      alert("Allocations saved successfully!");
       } else {
         throw new Error("Invalid response from server");
       }
