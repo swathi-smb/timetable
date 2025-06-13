@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
-import Navbar from './Navbar';
 import { apiPath } from "../path/apiPath";
-// import backgroundImage from "bg.jpg";
+
+// import backgroundImage from "../assets/bg.jpg";
 
 function SignUp() {
   const [formData, setFormData] = useState({
@@ -24,6 +24,66 @@ function SignUp() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ text: '', type: '' });
   const navigate = useNavigate();  // Handle email input and auto-fetch staff details
+
+  // Handle roll number input and auto-fetch student details
+  const handleRollNumberChange = async (e) => {
+    const rollNumber = e.target.value;
+    setFormData(prev => ({ ...prev, roleNumber: rollNumber }));
+    setErrors(prev => ({ ...prev, roleNumber: '', school: '', department: '', course: '' }));
+    setMessage({ text: '', type: '' });
+
+    if (rollNumber.trim()) {
+      try {
+        const response = await axios.get(`${apiPath}/api/student-profile/details/${rollNumber}`);
+        const studentData = response.data;
+
+        setFormData(prev => ({
+          ...prev,
+          school: studentData.school.toString(),
+          department: studentData.department.toString(),
+          course: studentData.course.toString()
+        }));
+
+        // Set schools and departments arrays with the fetched data for display
+        setSchools([{
+          school_id: studentData.school,
+          school_name: studentData.schoolName
+        }]);
+
+        setDepartments([{
+          department_id: studentData.department,
+          department_name: studentData.departmentName
+        }]);
+
+        setCourses([{
+          course_id: studentData.course,
+          course_name: studentData.courseName
+        }]);
+
+        setMessage({
+          text: `Student details found! You belong to ${studentData.schoolName}, ${studentData.departmentName}, ${studentData.courseName}.`,
+          type: 'success'
+        });
+      } catch (error) {
+        if (error.response?.status === 404) {
+          setErrors(prev => ({
+            ...prev,
+            roleNumber: 'No student record found with this roll number. Please contact your administrator.',
+            school: 'Student record not found',
+            department: 'Student record not found',
+            course: 'Student record not found'
+          }));
+        } else {
+          console.error('Error fetching student details:', error);
+          setErrors(prev => ({
+            ...prev,
+            roleNumber: 'Error verifying student roll number. Please try again.'
+          }));
+        }
+      }
+    }
+  };
+
   const handleEmailChange = async (e) => {
     const email = e.target.value;
     setFormData(prev => ({ ...prev, email }));
@@ -34,9 +94,7 @@ function SignUp() {
     if (!(/\S+@\S+\.\S+/.test(email))) {
       setErrors(prev => ({ ...prev, email: 'Invalid email format' }));
       return;
-    }
-
-    // For staff registration, fetch staff details
+    }    // For staff registration, fetch staff details
     if (formData.role === '2') {
       try {
         const response = await axios.get(`${apiPath}/api/staff-profile/details/${email}`);
@@ -60,7 +118,7 @@ function SignUp() {
         }]);
 
         setMessage({
-          text: `Staff details found!y Registration will be reviewed by an administrator.`,
+          text: `Staff details found! You belong to ${staffData.schoolName}, ${staffData.departmentName}. Registration will be reviewed by an administrator.`,
           type: 'success'
         });
       } catch (error) {
@@ -81,77 +139,11 @@ function SignUp() {
       }
     }
   };
-
-  // Add new function to handle roll number change for students
-  const handleRollNumberChange = async (e) => {
-    const rollNumber = e.target.value;
-    setFormData(prev => ({ ...prev, roleNumber: rollNumber }));
-    setErrors(prev => ({ ...prev, roleNumber: '', school: '', department: '', course: '' }));
-    setMessage({ text: '', type: '' });
-
-    if (!rollNumber.trim()) return;
-
-    try {
-      console.log('Fetching student details for roll number:', rollNumber);
-      const response = await axios.get(`${apiPath}/api/student/roll/${rollNumber}`);
-      const studentData = response.data;
-
-      console.log('Student data received:', studentData);
-
-      // Set form data with school, department, and course IDs
-      setFormData(prev => ({
-        ...prev,
-        school: studentData.school_id.toString(),
-        department: studentData.department_id.toString(),
-        course: studentData.course_id.toString()
-      }));
-
-      // Set schools array with the fetched data for display
-      setSchools([{
-        school_id: studentData.school_id,
-        school_name: studentData.school_name
-      }]);
-
-      // Set departments array with the fetched data for display
-      setDepartments([{
-        department_id: studentData.department_id,
-        department_name: studentData.department_name
-      }]);
-
-      // Set courses array with the fetched data for display
-      setCourses([{
-        course_id: studentData.course_id,
-        course_name: studentData.course_name
-      }]);
-
-      setMessage({
-        text: `Student details found! Registration will be reviewed by an administrator.`,
-        type: 'success'
-      });
-    } catch (error) {
-      console.error('Error fetching student details:', error);
-      if (error.response?.status === 404) {
-        setErrors(prev => ({
-          ...prev,
-          roleNumber: 'No student record found with this roll number. Please contact your administrator.',
-          school: 'Student record not found',
-          department: 'Student record not found',
-          course: 'Student record not found'
-        }));
-      } else {
-        setErrors(prev => ({
-          ...prev,
-          roleNumber: 'Error verifying roll number. Please try again.'
-        }));
-      }
-    }
-  };
-
   // Form validation
   const validateForm = () => {
     const newErrors = {};
 
-    // Email validation only for staff
+    // Only validate email for staff role
     if (formData.role === "2") {
       if (!formData.email) newErrors.email = "Email is required";
       else if (!/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = "Invalid email format";
@@ -173,12 +165,8 @@ function SignUp() {
     }
 
     // For student role, validate role number
-    if (formData.role === "3") {
-      if (!formData.roleNumber?.trim()) {
-        newErrors.roleNumber = "Roll Number is required";
-      }
-      if (!formData.school) newErrors.school = "Student record not found. Please enter a valid roll number.";
-      if (!formData.department) newErrors.department = "Student record not found. Please enter a valid roll number.";
+    if (formData.role === "3" && !formData.roleNumber?.trim()) {
+      newErrors.roleNumber = "Roll Number is required";
     }
 
     // Validate role number format for students
@@ -205,12 +193,11 @@ function SignUp() {
       const defaultSchoolId = 1;  // Set this to your default school ID
       const defaultDeptId = 1;    // Set this to your default department ID
       const requestData = {
-        name: formData.role === "2" ? formData.email.split('@')[0] : formData.roleNumber, // Use roll number as name for students
-        email: formData.role === "2" ? formData.email : null, // Only include email for staff
+        name: formData.email.split('@')[0], // Generate name from email
+        email: formData.email,
         password: formData.password,
         role: formData.role,
-        school_id: formData.school ? parseInt(formData.school, 10) : defaultSchoolId,
-        department_id: formData.department ? parseInt(formData.department, 10) : defaultDeptId,
+        school_id: formData.school ? parseInt(formData.school, 10) : defaultSchoolId, department_id: formData.department ? parseInt(formData.department, 10) : defaultDeptId,
         role_number: formData.role === "3" ? formData.roleNumber : null // Only include role_number for students
       };
 
@@ -238,9 +225,7 @@ function SignUp() {
         confirmPassword: '',
         role: '',
         roleNumber: '',
-        school: '',
-        department: '',
-        course: ''
+        school: '', department: '', course: ''
       });
     } catch (error) {
       console.error("Signup error:", error.response?.data || error.message);
@@ -257,113 +242,217 @@ function SignUp() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <Navbar />
-      <div 
-        className="flex-1 flex items-center justify-center bg-cover bg-center p-4 md:p-8"
-        style={{ backgroundImage: `url('/bg.jpg')` }}
+    <div
+      className="min-h-screen flex items-center justify-center bg-cover bg-center p-4"
+      style={{ backgroundImage: `url('/bg.jpg')` }}
+    >
+      <form
+        onSubmit={handleSubmit}
+        className="bg-white/90 backdrop-blur-md rounded-lg shadow-lg p-6 md:p-8 w-full max-w-md mx-4"
       >
-        <form 
-          onSubmit={handleSubmit} 
-          className="bg-white/90 rounded-lg shadow-lg p-6 md:p-8 w-full max-w-sm md:max-w-md mx-4"
-        >
-          <h1 className="text-2xl font-bold mb-6 text-center text-gray-800">Sign Up</h1>
+        <h1 className="text-2xl font-bold mb-6 text-center">Sign Up</h1>
 
-          {/* Name Input */}
-          <div className="mb-4">
-            <input
-              type="text"
-              name="name"
-              placeholder="Enter your full name"
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              className={`w-full p-3 border rounded-lg focus:outline-none focus:ring-2 ${
-                errors.name ? 'border-red-500 focus:ring-red-200' : 'border-gray-300 focus:ring-blue-200'
+        {/* Role Selection */}
+        <div className="mb-4">
+          <select
+            className={`w-full p-2 border rounded-lg focus:outline-none ${errors.role ? "border-red-500" : "border-gray-300"
               }`}
-            />
-            {errors.name && <span className="text-red-500 text-sm mt-1">{errors.name}</span>}
-          </div>
+            value={formData.role}
+            onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+          >
+            <option value="">Select Role</option>
+            <option value="2">Staff</option>
+            <option value="3">Student</option>
+          </select>
+          {errors.role && <span className="text-red-500 text-sm">{errors.role}</span>}
+        </div>
 
-          {/* Email Input */}
+        {/* Email Field - Only shown for staff */}
+        {formData.role === "2" && (
           <div className="mb-4">
             <input
               type="email"
-              name="email"
               placeholder="Enter your email"
               value={formData.email}
               onChange={handleEmailChange}
-              className={`w-full p-3 border rounded-lg focus:outline-none focus:ring-2 ${
-                errors.email ? 'border-red-500 focus:ring-red-200' : 'border-gray-300 focus:ring-blue-200'
-              }`}
+              className={`w-full p-2 md:p-3 border rounded-lg focus:outline-none focus:ring-2 ${errors.email ? "border-red-500 focus:ring-red-200" : "border-gray-300 focus:ring-blue-200"
+                }`}
             />
             {errors.email && <span className="text-red-500 text-sm mt-1">{errors.email}</span>}
           </div>
+        )}
 
-          {/* Roll Number Input */}
+        {/* Role Number Field - Only shown for students */}
+        {formData.role === "3" && (
           <div className="mb-4">
             <input
               type="text"
-              name="rollNumber"
-              placeholder="Enter your roll number"
-              value={formData.roleNumber}
-              onChange={handleRollNumberChange}
-              className={`w-full p-3 border rounded-lg focus:outline-none focus:ring-2 ${
-                errors.roleNumber ? 'border-red-500 focus:ring-red-200' : 'border-gray-300 focus:ring-blue-200'
-              }`}
+              placeholder="Enter Roll Number"
+              value={formData.roleNumber || ""}
+              onChange={(e) => setFormData({ ...formData, roleNumber: e.target.value })}
+              onBlur={handleRollNumberChange}
+              className={`w-full p-2 md:p-3 border rounded-lg focus:outline-none focus:ring-2 ${errors.roleNumber ? "border-red-500 focus:ring-red-200" : "border-gray-300 focus:ring-blue-200"
+                }`}
             />
-            {errors.roleNumber && <span className="text-red-500 text-sm mt-1">{errors.roleNumber}</span>}
+            {errors.roleNumber && (
+              <span className="text-red-500 text-sm">{errors.roleNumber}</span>
+            )}
           </div>
+        )} 
 
-          {/* Password Input */}
-          <div className="mb-4">
-            <input
-              type="password"
-              name="password"
-              placeholder="Enter your password"
-              value={formData.password}
-              onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-              className={`w-full p-3 border rounded-lg focus:outline-none focus:ring-2 ${
-                errors.password ? 'border-red-500 focus:ring-red-200' : 'border-gray-300 focus:ring-blue-200'
+        {/* Password Field */}
+        <div className="mb-4">
+          <input
+            type="password"
+            name="password"
+            placeholder="Enter your password"
+            autoComplete="new-password"
+            value={formData.password}
+            onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+            className={`w-full p-2 md:p-3 border rounded-lg focus:outline-none focus:ring-2 ${errors.password ? "border-red-500 focus:ring-red-200" : "border-gray-300 focus:ring-blue-200"
               }`}
-            />
-            {errors.password && <span className="text-red-500 text-sm mt-1">{errors.password}</span>}
-          </div>
+          />
+          {errors.password && <span className="text-red-500 text-sm mt-1">{errors.password}</span>}
+        </div>
 
-          {/* Confirm Password Input */}
-          <div className="mb-4">
-            <input
-              type="password"
-              name="confirmPassword"
-              placeholder="Confirm your password"
-              value={formData.confirmPassword}
-              onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-              className={`w-full p-3 border rounded-lg focus:outline-none focus:ring-2 ${
-                errors.confirmPassword ? 'border-red-500 focus:ring-red-200' : 'border-gray-300 focus:ring-blue-200'
+        {/* Confirm Password Field */}
+        <div className="mb-4">
+          <input
+            type="password"
+            placeholder="Confirm your password"
+            value={formData.confirmPassword}
+            onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+            className={`w-full p-2 md:p-3 border rounded-lg focus:outline-none focus:ring-2 ${errors.confirmPassword ? "border-red-500 focus:ring-red-200" : "border-gray-300 focus:ring-blue-200"
               }`}
-            />
-            {errors.confirmPassword && <span className="text-red-500 text-sm mt-1">{errors.confirmPassword}</span>}
-          </div>
-
-          {/* General Error Message */}
-          {errors.general && (
-            <div className="text-red-500 text-sm mb-4 text-center">{errors.general}</div>
-          )}
-
-          {/* Submit Button */}
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-blue-600 text-white p-3 rounded-lg hover:bg-blue-700 transition disabled:opacity-50"
+          />
+          {errors.confirmPassword && <span className="text-red-500 text-sm mt-1">{errors.confirmPassword}</span>}
+        </div>
+               
+        {/* School Selection - Read Only */}
+        <div className="mb-4">
+          <select
+            className={`w-full p-2 border rounded-lg focus:outline-none ${errors.school ? "border-red-500" : "border-gray-300"
+              } ${loading ? 'bg-gray-100' : ''}`}
+            value={formData.school}
+            disabled={true}
           >
-            {loading ? 'Signing up...' : 'Sign Up'}
-          </button>
+            {formData.role === '2' ? (
+              schools.length === 0 ? (
+                <option value="">School will be auto-populated</option>
+              ) : (
+                schools.map(school => (
+                  <option key={school.school_id} value={school.school_id}>
+                    {school.school_name}
+                  </option>
+                ))
+              )
+            ) : formData.role === '3' ? (
+              schools.length === 0 ? (
+                <option value="">School will be auto-populated</option>
+              ) : (
+                schools.map(school => (
+                  <option key={school.school_id} value={school.school_id}>
+                    {school.school_name}
+                  </option>
+                ))
+              )
+            ) : (
+              <option value="">Select School</option>
+            )}
+          </select>
+          {errors.school && <span className="text-red-500 text-sm">{errors.school}</span>}
+        </div>
 
-          {/* Login Link */}
-          <div className="text-center text-sm text-gray-600 mt-4">
-            Already have an account? <Link to="/login" className="text-blue-600 hover:underline">Login</Link>
+        {/* Department Selection - Read Only */}
+        <div className="mb-4">
+          <select
+            className={`w-full p-2 border rounded-lg focus:outline-none ${errors.department ? "border-red-500" : "border-gray-300"} ${loading ? 'bg-gray-100' : ''}`}
+            value={formData.department}
+            disabled={true}
+          >
+            {formData.role === '2' ? (
+              departments.length === 0 ? (
+                <option value="">Department will be auto-populated</option>
+              ) : (
+                departments.map(dept => (
+                  <option key={dept.department_id} value={dept.department_id}>
+                    {dept.department_name}
+                  </option>
+                ))
+              )
+            ) : formData.role === '3' ? (
+              departments.length === 0 ? (
+                <option value="">Department will be auto-populated</option>
+              ) : (
+                departments.map(dept => (
+                  <option key={dept.department_id} value={dept.department_id}>
+                    {dept.department_name}
+                  </option>
+                ))
+              )
+            ) : (
+              <option value="">Select Department</option>
+            )}
+          </select>
+          {errors.department && <span className="text-red-500 text-sm">{errors.department}</span>}
+        </div>
+
+        {/* Course Selection - Read Only (Only for students) */}
+        {formData.role === "3" && (
+          <div className="mb-4">
+            <select
+              className={`w-full p-2 border rounded-lg focus:outline-none ${errors.course ? "border-red-500" : "border-gray-300"} ${loading ? 'bg-gray-100' : ''}`}
+              value={formData.course}
+              disabled={true}
+            >
+              {courses.length === 0 ? (
+                <option value="">Course will be auto-populated</option>
+              ) : (
+                courses.map(course => (
+                  <option key={course.course_id} value={course.course_id}>
+                    {course.course_name}
+                  </option>
+                ))
+              )}
+            </select>
+            {errors.course && <span className="text-red-500 text-sm">{errors.course}</span>}
           </div>
-        </form>
-      </div>
+        )}
+
+        {/* General Errors */}
+        {errors.general && (
+          <div className="text-red-500 text-sm mb-4 text-center">{errors.general}</div>
+        )}
+
+        {/* Success/Error Message */}
+        {message.text && (
+          <div
+            className={`text-sm mb-4 p-3 rounded ${message.type === 'success'
+                ? 'bg-green-100 text-green-700 border border-green-300'
+                : 'bg-red-100 text-red-700 border border-red-300'
+              }`}
+          >
+            {message.text}
+          </div>
+        )}
+
+        {/* Submit Button */}
+        <button
+          type="submit"
+          className="w-full bg-blue-600 text-white p-2 md:p-3 rounded-lg hover:bg-blue-700 transition disabled:opacity-50"
+          disabled={loading}
+        >
+          {loading ? "Signing Up..." : "Sign Up"}
+        </button>
+
+        {/* Login Redirect */}
+        <p className="text-center text-xs md:text-sm text-gray-600 mt-4">
+          Already have an account?{" "}
+          <Link to="/login" className="text-blue-600 hover:underline">
+            Login
+          </Link>
+        </p>
+      </form>
     </div>
   );
 }
